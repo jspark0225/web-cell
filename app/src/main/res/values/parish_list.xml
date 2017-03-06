@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="parish_list" >
+        <item>1교구</item>
+        <item>2교구</item>
+        <item>3교구</item>
+        <item>4교구</item>
+        <item>5교구</item>
+        <item>6교구</item>
+        <item>7교구</item>
+    </string-array>
+</resources>
