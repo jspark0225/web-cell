@@ -1,25 +1,26 @@
 package com.spring.jspark.springwebcell.activity;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.DataSetObserver;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
-import android.widget.SpinnerAdapter;
-import android.widget.Toast;
 
+import com.spring.jspark.springwebcell.common.Common;
+import com.spring.jspark.springwebcell.httpparser.CellMemberInfo;
 import com.spring.jspark.springwebcell.httpparser.OnHttpResponse;
-import com.spring.jspark.springwebcell.httpparser.WebCellHttpParser;
+import com.spring.jspark.springwebcell.httpparser.HttpManager;
 import com.spring.jspark.springwebcell.R;
+
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback, OnHttpResponse {
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -38,7 +39,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.INTERNET}, REQUEST_INTERNET_PERMISSION);
         }
 
-        WebCellHttpParser.getInstance().setListener(this);
+        HttpManager.getInstance().setListener(this);
 
         ((Button)findViewById(R.id.login_btn)).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -46,7 +47,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 String loginId = ((EditText)findViewById(R.id.login_id)).getText().toString();
                 String password = ((EditText)findViewById(R.id.password)).getText().toString();
 
-                WebCellHttpParser.getInstance().login(loginId, password);
+                HttpManager.getInstance().login(loginId, password);
             }
         });
 
@@ -78,12 +79,20 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             public void run() {
                 if(_isSuccess){
                     String parish = (String)parishSelector.getSelectedItem();
-                    Toast.makeText(MainActivity.this, "parish=" + parish, Toast.LENGTH_SHORT).show();
-                    WebCellHttpParser.getInstance().getCellMembers(parish);
+                    HttpManager.getInstance().setParish(parish);
+                    HttpManager.getInstance().getCellMembers(Common.getTodaysYear(), Common.getTodaysWeekOfYear());
                 }else{
-
+                    //TODO: show login failure dialog
                 }
             }
         });
+    }
+
+    @Override
+    public void onRequestCellMemberInfoResult(boolean isSuccess) {
+        if(isSuccess){
+            Intent intent = new Intent(MainActivity.this, CellMemberListActivity.class);
+            startActivity(intent);
+        }
     }
 }
