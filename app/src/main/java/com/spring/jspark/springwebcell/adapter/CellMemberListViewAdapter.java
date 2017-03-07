@@ -24,6 +24,10 @@ public class CellMemberListViewAdapter extends BaseAdapter{
     ArrayList<CellMemberInfo> mMemberList;
 
     public CellMemberListViewAdapter(ArrayList<CellMemberInfo> memberList){
+        setMemberListInfo(memberList);
+    }
+
+    public void setMemberListInfo(ArrayList<CellMemberInfo> memberList){
         mMemberList = memberList;
     }
 
@@ -59,14 +63,14 @@ public class CellMemberListViewAdapter extends BaseAdapter{
         checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                Log.d("test", "onCheckedChanged position=" + pos + " isChecked=" + isChecked);
-                mMemberList.get(pos).setChecked(isChecked);
+                Log.d("test", "onCheckedChanged position=" + pos + " isWorshipAttended=" + isChecked);
+                mMemberList.get(pos).setWorshipAttended(isChecked);
             }
         });
 
         CellMemberInfo info = mMemberList.get(position);
 
-        checkBox.setChecked( info.isChecked() );
+        checkBox.setChecked( info.isWorshipAttended() );
         textView.setText( info.getName() );
         editText.setText( info.getReason() );
 

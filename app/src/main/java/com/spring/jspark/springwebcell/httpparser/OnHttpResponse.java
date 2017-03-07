@@ -9,4 +9,5 @@ import java.util.ArrayList;
 public interface OnHttpResponse {
     public void onLoginResult(boolean isSuccess);
     public void onRequestCellMemberInfoResult(boolean isSuccess);
+    public void onSubmitCellAttandanceResult(boolean isSuccess);
 }

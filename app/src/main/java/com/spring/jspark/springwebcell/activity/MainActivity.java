@@ -95,4 +95,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             startActivity(intent);
         }
     }
+
+    @Override
+    public void onSubmitCellAttandanceResult(boolean isSuccess) {
+
+    }
 }

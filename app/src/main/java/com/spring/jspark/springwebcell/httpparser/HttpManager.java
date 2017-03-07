@@ -16,6 +16,8 @@ import java.net.ProtocolException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by jspark on 2017. 3. 4..
@@ -23,6 +25,9 @@ import java.util.ArrayList;
 
 public class HttpManager {
     private static final String TAG = HttpManager.class.getSimpleName();
+    private static final int REQUEST_CODE_LOGIN = 1;
+    private static final int REQUEST_CODE_GET_CELL_MEMBER = 2;
+    private static final int REQUEST_CODE_SUBMIT_WORSHIP_ATTENDANCE = 3;
 
     private String mCookie = "";
     private OnHttpResponse mListener = null;
@@ -60,8 +65,35 @@ public class HttpManager {
 
     public void login(String id, String password){
         mUserId = id;
-        Thread t = new LoginRequestThread(id, password);
-        t.start();
+
+        String requestUri = "https://sinch.dimode.co.kr/include/loginCheck.asp";
+        HttpRequest request = new HttpRequest(REQUEST_CODE_LOGIN, HttpRequest.POST, requestUri, new HttpResponse() {
+            @Override
+            public void onHttpResponse(int requestCode, int statusCode, Map<String, List<String>> headers, String body) {
+                if(requestCode != REQUEST_CODE_LOGIN)
+                    return;
+
+                if(statusCode == 302){
+                    isLoggedIn = true;
+                    if(headers != null && headers.containsKey("Set-Cookie"))
+                        mCookie = headers.get("Set-Cookie").get(0);
+                    if(mListener != null)
+                        mListener.onLoginResult(true);
+                }else{
+                    isLoggedIn = false;
+                    if(mListener != null)
+                        mListener.onLoginResult(false);
+                }
+            }
+        });
+
+        request.addHeader("Content-Type", "application/x-www-form-urlencoded");
+        request.addHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
+
+        request.addParameter("loginID", id);
+        request.addParameter("loginPWD", password);
+
+        request.start();
     }
 
     public void getCellMembers(int year, int week){
@@ -71,8 +103,55 @@ public class HttpManager {
             return;
         }
 
-        GetCellMemberInfoThread t = new GetCellMemberInfoThread(year, week);
-        t.start();
+        String requestUri = "https://sinch.dimode.co.kr/webrange/cell/weeklyRangeATT_SUN.asp";
+
+        HttpRequest request = new HttpRequest(REQUEST_CODE_GET_CELL_MEMBER, HttpRequest.GET, requestUri, new HttpResponse() {
+            @Override
+            public void onHttpResponse(int requestCode, int statusCode, Map<String, List<String>> headers, String body) {
+                if(requestCode != REQUEST_CODE_GET_CELL_MEMBER)
+                    return;
+
+                if(statusCode != 200){
+                    mListener.onRequestCellMemberInfoResult(false);
+                    return;
+                }
+
+                mCellMemberInfo.clear();
+
+                Document doc = Jsoup.parse(body);
+                Elements elements = doc.select("table tr td input");
+
+                for(int i=0; i<elements.size()/4; i++){
+                    CellMemberInfo memberInfo = new CellMemberInfo();
+                    memberInfo.setIndex(i+1);
+                    memberInfo.setId(elements.get(i*4).attr("value"));
+                    memberInfo.setName(elements.get(i*4+1).attr("value"));
+                    memberInfo.setWorshipAttended(elements.get(i*4+2).attributes().hasKey("checked"));
+                    memberInfo.setReason(elements.get(i*4+3).attr("value"));
+
+                    mCellMemberInfo.add(memberInfo);
+                }
+
+                if(mListener != null)
+                    mListener.onRequestCellMemberInfoResult(true);
+            }
+        });
+
+        request.addHeader("Content-Type", "application/x-www-form-urlencoded");
+        request.addHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
+        request.addHeader("Cookie", mCookie);
+
+        request.addParameter("dsView", "1");
+        request.addParameter("rno", (week >= 10 ? "" + week : "0" + week));
+        request.addParameter("staticYear", "" + year);
+        request.addParameter("code", "");
+        request.addParameter("range", "청년사역");
+        request.addParameter("range1", mParish);
+        request.addParameter("range2", mUserId);
+        request.addParameter("startMonth", "01");
+        request.addParameter("endMonth", "12");
+
+        request.start();
     }
 
     public void submitCellAttandance(int year, int week){
@@ -82,236 +161,41 @@ public class HttpManager {
             return;
         }
 
-        SubmitCellAttandanceThread t = new SubmitCellAttandanceThread(year, week);
-        t.start();
-    }
+        String requestUri = "https://sinch.dimode.co.kr/webrange/cell/weeklyRangeATTSUNOK.asp";
 
-    class LoginRequestThread extends Thread{
-        String mId;
-        String mPassword;
+        HttpRequest request = new HttpRequest(REQUEST_CODE_SUBMIT_WORSHIP_ATTENDANCE, HttpRequest.POST, requestUri, new HttpResponse() {
+            @Override
+            public void onHttpResponse(int requestCode, int statusCode, Map<String, List<String>> headers, String body) {
+                if(requestCode != REQUEST_CODE_SUBMIT_WORSHIP_ATTENDANCE)
+                    return;
 
-        LoginRequestThread(String id, String password){
-            mId = id;
-            mPassword = password;
-        }
-        @Override
-        public void run() {
-            String url = "https://sinch.dimode.co.kr/include/loginCheck.asp";
-            String loginId = "";
-            try {
-                loginId = URLEncoder.encode(mId, "euc-kr");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-
-            url = url + "?loginID=" + loginId + "&loginPWD=" + mPassword;
-
-            Log.d(TAG, "request url = " + url);
-
-            URL _url = null;
-            try {
-                _url = new URL(url);
-                HttpURLConnection connection = (HttpURLConnection) _url.openConnection();
-                connection.setInstanceFollowRedirects(false);
-                connection.setUseCaches(false);
-                connection.setRequestMethod("POST");
-                connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-                connection.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
-                connection.setConnectTimeout(5000);
-                connection.setReadTimeout(5000);
-                connection.connect();
-
-                int responseCode = connection.getResponseCode();
-                if(responseCode == 302){
-                    isLoggedIn = true;
-                    mCookie = connection.getHeaderField("Set-Cookie");
-                    mListener.onLoginResult(true);
+                if(statusCode != 200){
+                    if(mListener != null)
+                        mListener.onSubmitCellAttandanceResult(false);
                 }else{
-                    isLoggedIn = false;
-                    mListener.onLoginResult(false);
+                    if(mListener != null)
+                        mListener.onSubmitCellAttandanceResult(true);
                 }
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (ProtocolException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
             }
-        }
-    }
+        });
 
-    class GetCellMemberInfoThread extends Thread{
-        int year;
-        int week;
+        request.addHeader("Content-Type", "application/x-www-form-urlencoded");
+        request.addHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
+        request.addHeader("Cookie", mCookie);
 
-        GetCellMemberInfoThread(int year, int week){
-            this.year = year;
-            this.week = week;
-        }
-        @Override
-        public void run() {
-
-            String range = "";
-            String range1 = "";
-            String range2 = "";
-
-            try {
-                range = URLEncoder.encode("청년사역", "euc-kr");
-                range1 = URLEncoder.encode(mParish, "euc-kr");
-                range2 = URLEncoder.encode(mUserId, "euc-kr");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-
-            String url = "https://sinch.dimode.co.kr/webrange/cell/weeklyRangeATT_SUN.asp" +
-                    "?dsView=1"
-                    +"&rno=" + (week >= 10 ? week : "0" + week)
-                    +"&staticYear=" +year
-                    +"&code="
-                    +"&range="+range
-                    +"&range1="+range1
-                    +"&range2="+range2
-                    +"&startMonth=01&endMonth=12";
-
-            Log.d(TAG, "request url = " + url);
-
-            try {
-                URL _url = new URL(url);
-                HttpURLConnection connection = (HttpURLConnection) _url.openConnection();
-                connection.setInstanceFollowRedirects(false);
-                connection.setUseCaches(false);
-                connection.setRequestMethod("GET");
-                connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-                connection.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
-                connection.setRequestProperty("Cookie", mCookie);
-                connection.setConnectTimeout(5000);
-                connection.setReadTimeout(5000);
-                connection.connect();
-
-                int responseCode = connection.getResponseCode();
-
-                if(responseCode != 200){
-                    mListener.onRequestCellMemberInfoResult(false);
-                    return;
-                }
-
-                mCellMemberInfo.clear();
-
-                StringBuilder builder = new StringBuilder(); //문자열을 담기 위한 객체
-                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(),"euc-kr")); //문자열 셋 세팅
-                String line;
-
-                while ((line = reader.readLine()) != null) {
-                    builder.append(line);
-                }
-
-                Document doc = Jsoup.parse(builder.toString());
-                Elements elements = doc.select("table tr td input");
-
-                for(int i=0; i<elements.size()/4; i++){
-                    CellMemberInfo memberInfo = new CellMemberInfo();
-                    memberInfo.setIndex(i+1);
-                    memberInfo.setId(elements.get(i*4).attr("value"));
-                    memberInfo.setName(elements.get(i*4+1).attr("value"));
-                    memberInfo.setChecked(elements.get(i*4+2).attributes().hasKey("checked"));
-                    memberInfo.setReason(elements.get(i*4+3).attr("value"));
-
-                    mCellMemberInfo.add(memberInfo);
-               }
-
-
-               if(mListener != null){
-                   mListener.onRequestCellMemberInfoResult(true);
-               }
-            } catch (MalformedURLException e) {
-                mListener.onRequestCellMemberInfoResult(false);
-                e.printStackTrace();
-            } catch (UnsupportedEncodingException e) {
-                mListener.onRequestCellMemberInfoResult(false);
-                e.printStackTrace();
-            } catch (ProtocolException e) {
-                mListener.onRequestCellMemberInfoResult(false);
-                e.printStackTrace();
-            } catch (IOException e) {
-                mListener.onRequestCellMemberInfoResult(false);
-                e.printStackTrace();
-            }
-        }
-    }
-
-    class SubmitCellAttandanceThread extends Thread{
-        int week;
-        int year;
-        public SubmitCellAttandanceThread(int year, int week) {
-            this.week = week;
-            this.year = year;
+        for(CellMemberInfo info : mCellMemberInfo){
+            request.addParameter("id(" + info.getIndex() + ")", info.getId());
+            request.addParameter("insName(" + info.getIndex() + ")", info.getName());
+            if(info.isWorshipAttended())
+                request.addParameter("ds(" + info.getIndex() + ")", "O");
+            request.addParameter("reason(" + info.getIndex() + ")", info.getReason());
         }
 
-        @Override
-        public void run() {
+        request.addParameter("i", ""+mCellMemberInfo.size());
+        request.addParameter("setDate", "" + year);
+        request.addParameter("staticYear", "" + year);
+        request.addParameter("rno", "" + week);
 
-            String range = "";
-            String range1 = "";
-            String range2 = "";
-
-            try {
-                range = URLEncoder.encode("청년사역", "euc-kr");
-                range1 = URLEncoder.encode(mParish, "euc-kr");
-                range2 = URLEncoder.encode(mUserId, "euc-kr");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-// id(1)=1137&insName(1)=이신홍&reason(1)=&id(2)=1464&insName(2)=최태현&ds(2)=O&reason(2)=&id(3)=1267&insName(3)=박지수&ds(3)=O&reason(3)=&id(4)=2079&insName(4)=허유정&reason(4)=&id(5)=2854&insName(5)=허송아&ds(5)=O&reason(5)=&id(6)=3538&insName(6)=최다솜&ds(6)=O&reason(6)=&id(7)=3683&insName(7)=김규원&ds(7)=O&reason(7)=&id(8)=3690&insName(8)=이형훈&reason(8)=&id(9)=3885&insName(9)=양석규&ds(9)=O&reason(9)=&i=9&setDate=2017&staticYear=2017&rno=10
-            String url = "https://sinch.dimode.co.kr/webrange/cell/weeklyRangeATTSUNOK.asp?";
-
-            for(CellMemberInfo info : mCellMemberInfo) {
-                url = url +
-                        "id(" + info.getIndex() + ")=" + info.getId() +
-                        "&insName(" + info.getIndex() + ")=" + info.getEncodedName() +
-                        (info.isChecked()? "&ds(" + info.getIndex() + ")=O": "") +
-                        "&reason(" + info.getIndex() + ")=" + info.getEncodedReason() + "&";
-            }
-
-            url = url +
-                    "i=" + mCellMemberInfo.size() +
-                    "&setDate=" + year +
-                    "&staticYear=" + year +
-                    "&rno=" + week;
-
-
-            Log.d(TAG, "request url = " + url);
-
-            try {
-                URL _url = new URL(url);
-                HttpURLConnection connection = (HttpURLConnection) _url.openConnection();
-                connection.setInstanceFollowRedirects(false);
-                connection.setUseCaches(false);
-                connection.setRequestMethod("POST");
-                connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-                connection.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
-                connection.setRequestProperty("Cookie", mCookie);
-                connection.setConnectTimeout(5000);
-                connection.setReadTimeout(5000);
-                connection.connect();
-
-                int responseCode = connection.getResponseCode();
-
-                if(responseCode != 200){
-                    return;
-                }
-            } catch (MalformedURLException e) {
-                mListener.onRequestCellMemberInfoResult(false);
-                e.printStackTrace();
-            } catch (UnsupportedEncodingException e) {
-                mListener.onRequestCellMemberInfoResult(false);
-                e.printStackTrace();
-            } catch (ProtocolException e) {
-                mListener.onRequestCellMemberInfoResult(false);
-                e.printStackTrace();
-            } catch (IOException e) {
-                mListener.onRequestCellMemberInfoResult(false);
-                e.printStackTrace();
-            }
-        }
+        request.start();
     }
 }

@@ -1,8 +1,5 @@
 package com.spring.jspark.springwebcell.httpparser;
 
-import android.os.Parcel;
-import android.os.Parcelable;
-
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
@@ -15,7 +12,8 @@ public class CellMemberInfo{
     private String name;
     private String id;
     private String reason;
-    private boolean isChecked;
+    private boolean isWorshipAttended;
+    private boolean isCellAttended;
 
     public int getIndex() {
         return index;
@@ -49,29 +47,19 @@ public class CellMemberInfo{
         this.reason = reason;
     }
 
-    public boolean isChecked() {
-        return isChecked;
+    public boolean isWorshipAttended() {
+        return isWorshipAttended;
     }
 
-    public void setChecked(boolean checked) {
-        isChecked = checked;
+    public void setWorshipAttended(boolean worshipAttended) {
+        isWorshipAttended = worshipAttended;
     }
 
-    public String getEncodedName(){
-        try {
-            String encodedName =  URLEncoder.encode(name, "euc-kr");
-            return encodedName;
-        } catch (UnsupportedEncodingException e) {
-            return name;
-        }
+    public boolean isCellAttended() {
+        return isCellAttended;
     }
 
-    public String getEncodedReason(){
-        try {
-            String encodedName =  URLEncoder.encode(reason, "euc-kr");
-            return encodedName;
-        } catch (UnsupportedEncodingException e) {
-            return reason;
-        }
+    public void setCellAttended(boolean cellAttended) {
+        isCellAttended = cellAttended;
     }
 }
