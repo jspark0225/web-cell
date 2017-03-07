@@ -2,26 +2,22 @@ package com.spring.jspark.springwebcell.httpparser;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.HashMap;
 
 /**
  * Created by jspark on 2017. 3. 6..
  */
 
 public class CellMemberInfo{
-    private int index;
     private String name;
     private String id;
-    private String reason;
-    private boolean isWorshipAttended = false;
-    private boolean isCellAttended = false;
+    private String phoneNumber;
+    private String registeredDate;
+    private String birthday;
+    private String address;
 
-    public int getIndex() {
-        return index;
-    }
-
-    public void setIndex(int index) {
-        this.index = index;
-    }
+    // key = year/week
+    private HashMap<String, AttendanceData> attendanceData = new HashMap<>();
 
     public String getName() {
         return name;
@@ -39,27 +35,92 @@ public class CellMemberInfo{
         this.id = id;
     }
 
-    public String getReason() {
-        return reason;
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
-    public void setReason(String reason) {
-        this.reason = reason;
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
-    public boolean isWorshipAttended() {
-        return isWorshipAttended;
+    public String getRegisteredDate() {
+        return registeredDate;
     }
 
-    public void setWorshipAttended(boolean worshipAttended) {
-        isWorshipAttended = worshipAttended;
+    public void setRegisteredDate(String registeredDate) {
+        this.registeredDate = registeredDate;
     }
 
-    public boolean isCellAttended() {
-        return isCellAttended;
+    public String getBirthday() {
+        return birthday;
     }
 
-    public void setCellAttended(boolean cellAttended) {
-        isCellAttended = cellAttended;
+    public void setBirthday(String birthday) {
+        this.birthday = birthday;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public AttendanceData getAttendanceData(int year, int week) {
+        String key = year + "/" + week;
+
+        if(!attendanceData.containsKey(key))
+            attendanceData.put(key, new AttendanceData());
+
+        return attendanceData.get(key);
+    }
+
+    public class AttendanceData{
+        private int index;
+        private String worshipAbsentReason;
+        private String cellAbsentReason;
+        private boolean isWorshipAttended = false;
+        private boolean isCellAttended = false;
+
+        public int getIndex() {
+            return index;
+        }
+
+        public void setIndex(int index) {
+            this.index = index;
+        }
+
+        public String getWorshipAbsentReason() {
+            return worshipAbsentReason;
+        }
+
+        public void setWorshipAbsentReason(String worshipAbsentReason) {
+            this.worshipAbsentReason = worshipAbsentReason;
+        }
+
+        public String getCellAbsentReason() {
+            return cellAbsentReason;
+        }
+
+        public void setCellAbsentReason(String cellAbsentReason) {
+            this.cellAbsentReason = cellAbsentReason;
+        }
+
+        public boolean isWorshipAttended() {
+            return isWorshipAttended;
+        }
+
+        public void setWorshipAttended(boolean worshipAttended) {
+            isWorshipAttended = worshipAttended;
+        }
+
+        public boolean isCellAttended() {
+            return isCellAttended;
+        }
+
+        public void setCellAttended(boolean cellAttended) {
+            isCellAttended = cellAttended;
+        }
     }
 }

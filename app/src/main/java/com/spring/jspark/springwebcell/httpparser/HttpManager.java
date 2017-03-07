@@ -4,6 +4,7 @@ import android.util.Log;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ public class HttpManager {
     private static final int REQUEST_CODE_GET_WORSHIP_ATTENDANCE = 2;
     private static final int REQUEST_CODE_GET_CELL_ATTENDANCE = 3;
     private static final int REQUEST_CODE_SUBMIT_WORSHIP_ATTENDANCE = 4;
+    private static final int REQUEST_CODE_REQUEST_CELL_MEMBER_INFO = 5;
 
     private String mCookie = "";
     private OnHttpResponse mListener = null;
@@ -55,11 +57,10 @@ public class HttpManager {
         this.mParish = parish;
     }
 
-    public CellMemberInfo getCellMemberInfo(int index){
-        for(CellMemberInfo info : mCellMemberInfo){
-            if(info.getIndex() == index)
+    public CellMemberInfo getCellMemberInfoById(String id){
+        for(CellMemberInfo info : mCellMemberInfo)
+            if(info.getId().equals(id))
                 return info;
-        }
 
         return null;
     }
@@ -97,8 +98,74 @@ public class HttpManager {
         request.start();
     }
 
-    public void getCellMembers(int year, int week){
-        Log.d(TAG, "getCellMembers year="+year+", week="+week);
+    public void requestCellMemberInfo(){
+        Log.d(TAG, "requestCellMemberInfo");
+        if(!isLoggedIn){
+            Log.e(TAG, "NOT Logged in");
+            return;
+        }
+
+        String requestUri = "https://sinch.dimode.co.kr/webrange/cell/rangelist_pers.asp";
+        HttpRequest request = new HttpRequest(REQUEST_CODE_REQUEST_CELL_MEMBER_INFO, HttpRequest.GET, requestUri, new HttpResponse() {
+            @Override
+            public void onHttpResponse(int requestCode, int statusCode, Map<String, List<String>> headers, String body) {
+                if(requestCode != REQUEST_CODE_REQUEST_CELL_MEMBER_INFO)
+                    return;
+
+                if(statusCode != 200){
+                    if(mListener != null)
+                        mListener.onRequestCellMemberInfoResult(false);
+
+                    return;
+                }
+
+                Document doc = Jsoup.parse(body);
+                Elements elements = doc.select("table tr[height=20] td[bgcolor=#FFFFFF]");
+
+                mCellMemberInfo.clear();
+
+                for(int i=0; i<elements.size()/11; i++){
+                    String name             = elements.get(i * 11 + 0).child(0).child(0).text();
+                    String id               = elements.get(i * 11 + 0).child(0).attr("href").split("tid=")[1].split("&")[0];
+                    String registerDate     = elements.get(i * 11 + 1).text();
+                    String birthday         = elements.get(i * 11 + 2).text();
+                    String email            = elements.get(i * 11 + 3).child(0).text();
+                    String phoneNumber      = elements.get(i * 11 + 4).child(0).text();
+                    String address          = elements.get(i * 11 + 5).child(0).text();
+                    String workingCompany   = elements.get(i * 11 + 6).child(0).text();
+                    String major            = elements.get(i * 11 + 7).child(0).text();
+                    String cellInfo         = elements.get(i * 11 + 8).child(0).text();
+                    String prevChurch       = elements.get(i * 11 + 9).child(0).text();
+                    String otherInfo        = elements.get(i * 11 + 10).child(0).text();
+
+                    CellMemberInfo memberInfo = new CellMemberInfo();
+                    memberInfo.setName(name);
+                    memberInfo.setId(id);
+                    memberInfo.setRegisteredDate(registerDate);
+                    memberInfo.setBirthday(birthday);
+                    memberInfo.setPhoneNumber(phoneNumber);
+                    memberInfo.setAddress(address);
+
+                    mCellMemberInfo.add(memberInfo);
+                }
+                if(mListener != null)
+                    mListener.onRequestCellMemberInfoResult(true);
+            }
+        });
+
+        request.addHeader("Content-Type", "application/x-www-form-urlencoded");
+        request.addHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
+        request.addHeader("Cookie", mCookie);
+
+        request.addParameter("range", "청년사역");
+        request.addParameter("range1", mParish);
+        request.addParameter("range2", mUserId);
+
+        request.start();
+    }
+
+    public void getCellMemberAttendance(int year, int week){
+        Log.d(TAG, "getCellMemberAttendance year="+year+", week="+week);
         if(!isLoggedIn){
             Log.e(TAG, "NOT Logged in");
             return;
@@ -111,6 +178,9 @@ public class HttpManager {
     public void getWorshipAttendance(int year, int week){
         String requestUri = "https://sinch.dimode.co.kr/webrange/cell/weeklyRangeATT_SUN.asp";
 
+        final int targetYear = year;
+        final int targetWeek = week;
+
         HttpRequest getWorshipAttendanceRequest = new HttpRequest(REQUEST_CODE_GET_WORSHIP_ATTENDANCE, HttpRequest.GET, requestUri, new HttpResponse() {
             @Override
             public void onHttpResponse(int requestCode, int statusCode, Map<String, List<String>> headers, String body) {
@@ -118,43 +188,30 @@ public class HttpManager {
                     return;
 
                 if(statusCode != 200){
-                    mListener.onRequestCellMemberInfoResult(false);
+                    mListener.onRequestCellMemberAttendanceResult(false);
                     return;
                 }
-
-
-
-                ArrayList<CellMemberInfo> cellMemberInfo = new ArrayList<>();
-//                mCellMemberInfo.clear();
 
                 Document doc = Jsoup.parse(body);
                 Elements elements = doc.select("table tr td input");
 
-                Log.d(TAG, "5");
                 synchronized (mCellMemberInfo) {
-                    Log.d(TAG, "6");
                     for (int i = 0; i < elements.size() / 4; i++) {
-                        CellMemberInfo memberInfo = new CellMemberInfo();
-                        memberInfo.setIndex(i + 1);
-                        memberInfo.setId(elements.get(i * 4).attr("value"));
-                        memberInfo.setName(elements.get(i * 4 + 1).attr("value"));
-                        memberInfo.setWorshipAttended(elements.get(i * 4 + 2).attributes().hasKey("checked"));
-                        memberInfo.setReason(elements.get(i * 4 + 3).attr("value"));
+                        String id = elements.get(i * 4).attr("value");
+                        CellMemberInfo memberInfo = getCellMemberInfoById(id);
 
-                        CellMemberInfo info = getCellMemberInfo(memberInfo.getIndex());
-                        if(info != null)
-                            memberInfo.setCellAttended( info.isCellAttended() );
+                        if(memberInfo == null)
+                            continue;
 
-                        cellMemberInfo.add(memberInfo);
+                        CellMemberInfo.AttendanceData data = memberInfo.getAttendanceData(targetYear, targetWeek);
+
+                        data.setWorshipAttended(elements.get(i * 4 + 2).attributes().hasKey("checked"));
+                        data.setWorshipAbsentReason(elements.get(i * 4 + 3).attr("value"));
                     }
-
-                    Log.d(TAG, "7");
-                    mCellMemberInfo = cellMemberInfo;
                 }
-                Log.d(TAG, "8");
 
                 if(mListener != null)
-                    mListener.onRequestCellMemberInfoResult(true);
+                    mListener.onRequestCellMemberAttendanceResult(false);
             }
         });
 
@@ -178,6 +235,9 @@ public class HttpManager {
     public void getCellAttendance(int year, int week){
         String requestUri = "https://sinch.dimode.co.kr/webrange/cell/weeklyRangeATT_DAY.asp";
 
+        final int targetYear = year;
+        final int targetWeek = week;
+
         HttpRequest getCellAttendanceRequest = new HttpRequest(REQUEST_CODE_GET_CELL_ATTENDANCE, HttpRequest.GET, requestUri, new HttpResponse() {
             @Override
             public void onHttpResponse(int requestCode, int statusCode, Map<String, List<String>> headers, String body) {
@@ -185,42 +245,31 @@ public class HttpManager {
                     return;
 
                 if(statusCode != 200){
-                    mListener.onRequestCellMemberInfoResult(false);
+                    if(mListener != null)
+                        mListener.onRequestCellMemberAttendanceResult(false);
                     return;
                 }
-
-                ArrayList<CellMemberInfo> cellMemberInfo = new ArrayList<>();
-//                mCellMemberInfo.clear();
 
                 Document doc = Jsoup.parse(body);
                 Elements elements = doc.select("table tr td input");
 
+                synchronized (mCellMemberInfo) {
+                    for (int i = 0; i < elements.size() / 4; i++) {
+                        String id = elements.get(i * 4).attr("value");
+                        CellMemberInfo memberInfo = getCellMemberInfoById(id);
 
-                Log.d(TAG, "1");
-                synchronized (mCellMemberInfo){
-                    Log.d(TAG, "2");
-                    for(int i=0; i<elements.size()/4; i++){
-                        CellMemberInfo memberInfo = new CellMemberInfo();
-                        memberInfo.setIndex(i+1);
-                        memberInfo.setId(elements.get(i*4).attr("value"));
-                        memberInfo.setName(elements.get(i*4+1).attr("value"));
-                        memberInfo.setCellAttended(elements.get(i*4+2).attributes().hasKey("checked"));
-                        memberInfo.setReason(elements.get(i*4+3).attr("value"));
+                        if(memberInfo == null)
+                            continue;
 
-                        CellMemberInfo info = getCellMemberInfo(memberInfo.getIndex());
-                        if(info != null)
-                            memberInfo.setWorshipAttended( info.isWorshipAttended() );
+                        CellMemberInfo.AttendanceData data = memberInfo.getAttendanceData(targetYear, targetWeek);
 
-                        cellMemberInfo.add(memberInfo);
+                        data.setCellAttended(elements.get(i * 4 + 2).attributes().hasKey("checked"));
+                        data.setCellAbsentReason(elements.get(i * 4 + 3).attr("value"));
                     }
-                    Log.d(TAG, "3");
-
-                    mCellMemberInfo = cellMemberInfo;
                 }
-                Log.d(TAG, "4");
 
                 if(mListener != null)
-                    mListener.onRequestCellMemberInfoResult(true);
+                    mListener.onRequestCellMemberAttendanceResult(true);
             }
         });
 
@@ -276,11 +325,12 @@ public class HttpManager {
         request.addHeader("Cookie", mCookie);
 
         for(CellMemberInfo info : mCellMemberInfo){
-            request.addParameter("id(" + info.getIndex() + ")", info.getId());
-            request.addParameter("insName(" + info.getIndex() + ")", info.getName());
-            if(info.isWorshipAttended())
-                request.addParameter("ds(" + info.getIndex() + ")", "O");
-            request.addParameter("reason(" + info.getIndex() + ")", info.getReason());
+            CellMemberInfo.AttendanceData data = info.getAttendanceData(year, week);
+            request.addParameter("id(" + data.getIndex() + ")", info.getId());
+            request.addParameter("insName(" + data.getIndex() + ")", info.getName());
+            if(data.isWorshipAttended())
+                request.addParameter("ds(" + data.getIndex() + ")", "O");
+            request.addParameter("reason(" + data.getIndex() + ")", data.getWorshipAbsentReason());
         }
 
         request.addParameter("i", ""+mCellMemberInfo.size());
@@ -321,11 +371,12 @@ public class HttpManager {
         request.addHeader("Cookie", mCookie);
 
         for(CellMemberInfo info : mCellMemberInfo){
-            request.addParameter("id(" + info.getIndex() + ")", info.getId());
-            request.addParameter("insName(" + info.getIndex() + ")", info.getName());
-            if(info.isCellAttended())
-                request.addParameter("ds(" + info.getIndex() + ")", "O");
-            request.addParameter("reason(" + info.getIndex() + ")", info.getReason());
+            CellMemberInfo.AttendanceData data = info.getAttendanceData(year, week);
+            request.addParameter("id(" + data.getIndex() + ")", info.getId());
+            request.addParameter("insName(" + data.getIndex() + ")", info.getName());
+            if(data.isCellAttended())
+                request.addParameter("ds(" + data.getIndex() + ")", "O");
+            request.addParameter("reason(" + data.getIndex() + ")", data.getCellAbsentReason());
         }
 
         request.addParameter("i", ""+mCellMemberInfo.size());

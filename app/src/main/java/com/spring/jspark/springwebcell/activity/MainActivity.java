@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 if(_isSuccess){
                     String parish = (String)parishSelector.getSelectedItem();
                     HttpManager.getInstance().setParish(parish);
-                    HttpManager.getInstance().getCellMembers(Common.getTodaysYear(), Common.getTodaysWeekOfYear());
+                    HttpManager.getInstance().requestCellMemberInfo();
                 }else{
                     //TODO: show login failure dialog
                 }
@@ -95,6 +95,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     @Override
     public void onSubmitCellAttandanceResult(boolean isSuccess) {
+
+    }
+
+    @Override
+    public void onRequestCellMemberAttendanceResult(boolean isSuccess) {
 
     }
 }

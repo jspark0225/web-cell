@@ -111,3 +111,26 @@ public class HttpRequest extends  Thread{
         }
     }
 }
+
+/*
+
+txtmeetingday=2017-03-05
+&cbomeetingweek=1
+&txtrangecount=9
+&txtattcount=5
+&txtvisitcount=
+&txtpastorcount=
+&txtchildcount=
+&txtmoney=
+&cbobreakice=%C7%CF%C1%F6%BE%CA%C0%BD
+&cboworship=%BA%F3%BE%E0%C7%D4
+&cbopraying=%BA%B8%C5%EB
+&cbobibleshare=%C1%C1%C0%BD
+&cbomissionshare=%B8%C5%BF%EC%C1%C1%C0%BD
+&cbothankplan=%C7%CF%C1%F6%BE%CA%C0%BD
+&txtrequirement=12345
+&txtmeetingplace=%B1%B3%C8%B8%C4%AB%C6%E4
+&txtnextmeetingday=2017-03-12
+&txtnextmeetingplace=%B1%B3%C8%B8%C4%AB%C6%E4
+
+ */

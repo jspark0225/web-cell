@@ -21,10 +21,16 @@ import java.util.ArrayList;
  */
 
 public class CellMemberListViewAdapter extends BaseAdapter{
+
+    private int year;
+    private int week;
+
     ArrayList<CellMemberInfo> mMemberList;
 
-    public CellMemberListViewAdapter(ArrayList<CellMemberInfo> memberList){
+    public CellMemberListViewAdapter(ArrayList<CellMemberInfo> memberList, int year, int week){
         setMemberListInfo(memberList);
+        this.year = year;
+        this.week = week;
     }
 
     public void setMemberListInfo(ArrayList<CellMemberInfo> memberList){
@@ -65,7 +71,7 @@ public class CellMemberListViewAdapter extends BaseAdapter{
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 Log.d("test", "onCheckedChanged position=" + pos + " isWorshipAttended=" + isChecked);
-                mMemberList.get(pos).setWorshipAttended(isChecked);
+                mMemberList.get(pos).getAttendanceData(year,week).setWorshipAttended(isChecked);
             }
         });
 
@@ -73,17 +79,17 @@ public class CellMemberListViewAdapter extends BaseAdapter{
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 Log.d("test", "onCheckedChanged position=" + pos + " isCellAttended=" + isChecked);
-                mMemberList.get(pos).setCellAttended(isChecked);
+                mMemberList.get(pos).getAttendanceData(year,week).setCellAttended(isChecked);
             }
         });
 
 
         CellMemberInfo info = mMemberList.get(position);
 
-        checkBox1.setChecked( info.isWorshipAttended() );
-        checkBox2.setChecked( info.isCellAttended() );
+        checkBox1.setChecked( info.getAttendanceData(year,week).isWorshipAttended() );
+        checkBox2.setChecked( info.getAttendanceData(year,week).isCellAttended() );
         textView.setText( info.getName() );
-        editText.setText( info.getReason() );
+        editText.setText( info.getAttendanceData(year,week).getCellAbsentReason() );
 
         return convertView;
     }

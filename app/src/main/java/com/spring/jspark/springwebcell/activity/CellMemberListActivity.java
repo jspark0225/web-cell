@@ -36,7 +36,7 @@ public class CellMemberListActivity extends AppCompatActivity implements OnHttpR
         mCellMemberList = HttpManager.getInstance().getCellMemberInfo();
 
         ListView listView = (ListView) findViewById(R.id.cell_member_list);
-        mAdapter = new CellMemberListViewAdapter(mCellMemberList);
+        mAdapter = new CellMemberListViewAdapter(mCellMemberList, year, weekOfYear);
         listView.setAdapter(mAdapter);
 
         ((Button)findViewById(R.id.submit)).setOnClickListener(new View.OnClickListener() {
@@ -45,6 +45,8 @@ public class CellMemberListActivity extends AppCompatActivity implements OnHttpR
                 HttpManager.getInstance().submitAttendance(year, weekOfYear);
             }
         });
+
+        HttpManager.getInstance().getCellMemberAttendance(year, weekOfYear);
     }
 
     @Override
@@ -58,9 +60,6 @@ public class CellMemberListActivity extends AppCompatActivity implements OnHttpR
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    Toast.makeText(CellMemberListActivity.this, "onRequestCellMemberInfoResult", Toast.LENGTH_SHORT).show();
-                    mAdapter.setMemberListInfo( HttpManager.getInstance().getCellMemberInfo() );
-                    mAdapter.notifyDataSetChanged();
                 }
             });
         }
@@ -68,7 +67,18 @@ public class CellMemberListActivity extends AppCompatActivity implements OnHttpR
 
     @Override
     public void onSubmitCellAttandanceResult(boolean isSuccess) {
-        if(isSuccess)
-            HttpManager.getInstance().getCellMembers(year, weekOfYear);
+    }
+
+    @Override
+    public void onRequestCellMemberAttendanceResult(boolean isSuccess) {
+        if(isSuccess){
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mAdapter.setMemberListInfo( HttpManager.getInstance().getCellMemberInfo() );
+                    mAdapter.notifyDataSetChanged();
+                }
+            });
+        }
     }
 }
