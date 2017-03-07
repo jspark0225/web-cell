@@ -12,8 +12,8 @@ public class CellMemberInfo{
     private String name;
     private String id;
     private String reason;
-    private boolean isWorshipAttended;
-    private boolean isCellAttended;
+    private boolean isWorshipAttended = false;
+    private boolean isCellAttended = false;
 
     public int getIndex() {
         return index;

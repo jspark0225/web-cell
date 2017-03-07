@@ -15,12 +15,9 @@ import android.widget.EditText;
 import android.widget.Spinner;
 
 import com.spring.jspark.springwebcell.common.Common;
-import com.spring.jspark.springwebcell.httpparser.CellMemberInfo;
 import com.spring.jspark.springwebcell.httpparser.OnHttpResponse;
 import com.spring.jspark.springwebcell.httpparser.HttpManager;
 import com.spring.jspark.springwebcell.R;
-
-import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback, OnHttpResponse {
     private static final String TAG = MainActivity.class.getSimpleName();

@@ -56,11 +56,12 @@ public class CellMemberListViewAdapter extends BaseAdapter{
             convertView = inflater.inflate(R.layout.cell_member_list_view_item, parent, false);
         }
 
-        CheckBox checkBox = (CheckBox) convertView.findViewById(R.id.checkbox);
+        CheckBox checkBox1 = (CheckBox) convertView.findViewById(R.id.checkbox1);
+        CheckBox checkBox2 = (CheckBox) convertView.findViewById(R.id.checkbox2);
         TextView textView = (TextView) convertView.findViewById(R.id.textview);
         EditText editText = (EditText) convertView.findViewById(R.id.edittext);
 
-        checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        checkBox1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 Log.d("test", "onCheckedChanged position=" + pos + " isWorshipAttended=" + isChecked);
@@ -68,9 +69,19 @@ public class CellMemberListViewAdapter extends BaseAdapter{
             }
         });
 
+        checkBox2.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Log.d("test", "onCheckedChanged position=" + pos + " isCellAttended=" + isChecked);
+                mMemberList.get(pos).setCellAttended(isChecked);
+            }
+        });
+
+
         CellMemberInfo info = mMemberList.get(position);
 
-        checkBox.setChecked( info.isWorshipAttended() );
+        checkBox1.setChecked( info.isWorshipAttended() );
+        checkBox2.setChecked( info.isCellAttended() );
         textView.setText( info.getName() );
         editText.setText( info.getReason() );
 

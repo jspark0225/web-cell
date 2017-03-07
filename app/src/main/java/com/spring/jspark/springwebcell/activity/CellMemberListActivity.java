@@ -3,7 +3,6 @@ package com.spring.jspark.springwebcell.activity;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -43,7 +42,7 @@ public class CellMemberListActivity extends AppCompatActivity implements OnHttpR
         ((Button)findViewById(R.id.submit)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                HttpManager.getInstance().submitCellAttandance(year, weekOfYear);
+                HttpManager.getInstance().submitAttendance(year, weekOfYear);
             }
         });
     }
