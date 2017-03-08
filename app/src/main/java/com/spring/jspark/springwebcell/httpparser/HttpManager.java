@@ -8,6 +8,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -22,6 +23,7 @@ public class HttpManager {
     private static final int REQUEST_CODE_GET_CELL_ATTENDANCE = 3;
     private static final int REQUEST_CODE_SUBMIT_WORSHIP_ATTENDANCE = 4;
     private static final int REQUEST_CODE_REQUEST_CELL_MEMBER_INFO = 5;
+    private static final int REQUEST_CODE_REQUEST_LEADER_NAME = 6;
 
     private String mCookie = "";
     private OnHttpResponse mListener = null;
@@ -31,7 +33,11 @@ public class HttpManager {
     private String mParish = "";
     private boolean isLoggedIn = false;
 
-    private ArrayList<CellMemberInfo> mCellMemberInfo = new ArrayList<>();
+    // <LeaderName, CellMemberInfoList>
+    private Map<String, ArrayList<CellMemberInfo>> mCellMemberInfos = new HashMap<>();
+
+    // <Parish, LeaderNameList>
+    private Map<String, ArrayList<String>> mLeaderList = new HashMap<>();
 
     private HttpManager(){
 
@@ -46,7 +52,11 @@ public class HttpManager {
     }
 
     public ArrayList<CellMemberInfo> getCellMemberInfo() {
-        return mCellMemberInfo;
+        return getCellMemberInfo(mUserId);
+    }
+
+    public ArrayList<CellMemberInfo> getCellMemberInfo(String cellLeaderName){
+        return mCellMemberInfos.get(cellLeaderName);
     }
 
     public void setListener(OnHttpResponse listener){
@@ -58,7 +68,14 @@ public class HttpManager {
     }
 
     public CellMemberInfo getCellMemberInfoById(String id){
-        for(CellMemberInfo info : mCellMemberInfo)
+        return getCellMemberInfoById(mUserId, id);
+    }
+
+    public CellMemberInfo getCellMemberInfoById(String cellLeaderName, String id){
+        if(!mCellMemberInfos.containsKey(cellLeaderName))
+            return null;
+
+        for(CellMemberInfo info : mCellMemberInfos.get(cellLeaderName))
             if(info.getId().equals(id))
                 return info;
 
@@ -99,7 +116,12 @@ public class HttpManager {
     }
 
     public void requestCellMemberInfo(){
-        Log.d(TAG, "requestCellMemberInfo");
+        requestCellMemberInfo(mUserId);
+    }
+
+
+    public void requestCellMemberInfo(final String cellLeaderName){
+        Log.d(TAG, "requestCellMemberInfo leaderName = " + cellLeaderName);
         if(!isLoggedIn){
             Log.e(TAG, "NOT Logged in");
             return;
@@ -113,16 +135,18 @@ public class HttpManager {
                     return;
 
                 if(statusCode != 200){
-                    if(mListener != null)
-                        mListener.onRequestCellMemberInfoResult(false);
+                    synchronized (mListener) {
+                        if (mListener != null)
+                            mListener.onRequestCellMemberInfoResult(false, cellLeaderName, null);
 
-                    return;
+                        return;
+                    }
                 }
 
                 Document doc = Jsoup.parse(body);
                 Elements elements = doc.select("table tr[height=20] td[bgcolor=#FFFFFF]");
 
-                mCellMemberInfo.clear();
+                ArrayList<CellMemberInfo> cellMemberInfos = new ArrayList<>();
 
                 for(int i=0; i<elements.size()/11; i++){
                     String name             = elements.get(i * 11 + 0).child(0).child(0).text();
@@ -146,10 +170,18 @@ public class HttpManager {
                     memberInfo.setPhoneNumber(phoneNumber);
                     memberInfo.setAddress(address);
 
-                    mCellMemberInfo.add(memberInfo);
+                    cellMemberInfos.add(memberInfo);
                 }
-                if(mListener != null)
-                    mListener.onRequestCellMemberInfoResult(true);
+                Log.d(TAG, "parse finished");
+
+                if(mCellMemberInfos.containsKey(cellLeaderName))
+                    mCellMemberInfos.remove(cellLeaderName);
+
+                mCellMemberInfos.put(cellLeaderName, cellMemberInfos);
+                synchronized (mListener) {
+                    if (mListener != null)
+                        mListener.onRequestCellMemberInfoResult(true, cellLeaderName, cellMemberInfos);
+                }
             }
         });
 
@@ -159,23 +191,30 @@ public class HttpManager {
 
         request.addParameter("range", "청년사역");
         request.addParameter("range1", mParish);
-        request.addParameter("range2", mUserId);
+        request.addParameter("range2", cellLeaderName);
 
         request.start();
     }
 
-    public void getCellMemberAttendance(int year, int week){
-        Log.d(TAG, "getCellMemberAttendance year="+year+", week="+week);
+    public void getCellMemberAttendance(int year, int week) {
+        getCellMemberAttendance(mUserId, year, week);
+    }
+
+    public void getCellMemberAttendance(String cellLeaderName, int year, int week){
+        Log.d(TAG, "getCellMemberAttendance cellLeaderName=" + cellLeaderName + " year=" + year+", week=" + week);
         if(!isLoggedIn){
             Log.e(TAG, "NOT Logged in");
             return;
         }
 
-        getWorshipAttendance(year, week);
-        getCellAttendance(year, week);
+        getWorshipAttendance(cellLeaderName, year, week);
+        getCellAttendance(cellLeaderName, year, week);
     }
 
-    public void getWorshipAttendance(int year, int week){
+    public void getWorshipAttendance(final String cellLeaderName, int year, int week){
+        if(!mCellMemberInfos.containsKey(cellLeaderName))
+            return;
+
         String requestUri = "https://sinch.dimode.co.kr/webrange/cell/weeklyRangeATT_SUN.asp";
 
         final int targetYear = year;
@@ -188,17 +227,23 @@ public class HttpManager {
                     return;
 
                 if(statusCode != 200){
-                    mListener.onRequestCellMemberAttendanceResult(false);
+                    synchronized (mListener){
+                        if(mListener != null)
+                            mListener.onRequestCellMemberAttendanceResult(false, cellLeaderName, null);
+                    }
                     return;
                 }
 
                 Document doc = Jsoup.parse(body);
                 Elements elements = doc.select("table tr td input");
 
-                synchronized (mCellMemberInfo) {
+                if(!mCellMemberInfos.containsKey(cellLeaderName))
+                    return;
+
+                synchronized (mCellMemberInfos.get(cellLeaderName)) {
                     for (int i = 0; i < elements.size() / 4; i++) {
                         String id = elements.get(i * 4).attr("value");
-                        CellMemberInfo memberInfo = getCellMemberInfoById(id);
+                        CellMemberInfo memberInfo = getCellMemberInfoById(cellLeaderName, id);
 
                         if(memberInfo == null)
                             continue;
@@ -210,8 +255,10 @@ public class HttpManager {
                     }
                 }
 
-                if(mListener != null)
-                    mListener.onRequestCellMemberAttendanceResult(false);
+                synchronized (mListener) {
+                    if (mListener != null)
+                        mListener.onRequestCellMemberAttendanceResult(true, cellLeaderName, mCellMemberInfos.get(cellLeaderName));
+                }
             }
         });
 
@@ -225,14 +272,17 @@ public class HttpManager {
         getWorshipAttendanceRequest.addParameter("code", "");
         getWorshipAttendanceRequest.addParameter("range", "청년사역");
         getWorshipAttendanceRequest.addParameter("range1", mParish);
-        getWorshipAttendanceRequest.addParameter("range2", mUserId);
+        getWorshipAttendanceRequest.addParameter("range2", cellLeaderName);
         getWorshipAttendanceRequest.addParameter("startMonth", "01");
         getWorshipAttendanceRequest.addParameter("endMonth", "12");
 
         getWorshipAttendanceRequest.start();
     }
 
-    public void getCellAttendance(int year, int week){
+    public void getCellAttendance(final String cellLeaderName, int year, int week){
+        if(!mCellMemberInfos.containsKey(cellLeaderName))
+            return;
+
         String requestUri = "https://sinch.dimode.co.kr/webrange/cell/weeklyRangeATT_DAY.asp";
 
         final int targetYear = year;
@@ -245,18 +295,23 @@ public class HttpManager {
                     return;
 
                 if(statusCode != 200){
-                    if(mListener != null)
-                        mListener.onRequestCellMemberAttendanceResult(false);
+                    synchronized (mListener) {
+                        if (mListener != null)
+                            mListener.onRequestCellMemberAttendanceResult(false, cellLeaderName, null);
+                    }
                     return;
                 }
 
                 Document doc = Jsoup.parse(body);
                 Elements elements = doc.select("table tr td input");
 
-                synchronized (mCellMemberInfo) {
+                if(!mCellMemberInfos.containsKey(cellLeaderName))
+                    return;
+
+                synchronized (mCellMemberInfos.get(cellLeaderName)) {
                     for (int i = 0; i < elements.size() / 4; i++) {
                         String id = elements.get(i * 4).attr("value");
-                        CellMemberInfo memberInfo = getCellMemberInfoById(id);
+                        CellMemberInfo memberInfo = getCellMemberInfoById(cellLeaderName, id);
 
                         if(memberInfo == null)
                             continue;
@@ -267,9 +322,10 @@ public class HttpManager {
                         data.setCellAbsentReason(elements.get(i * 4 + 3).attr("value"));
                     }
                 }
-
-                if(mListener != null)
-                    mListener.onRequestCellMemberAttendanceResult(true);
+                synchronized (mListener) {
+                    if (mListener != null)
+                        mListener.onRequestCellMemberAttendanceResult(true, cellLeaderName, mCellMemberInfos.get(cellLeaderName));
+                }
             }
         });
 
@@ -283,7 +339,7 @@ public class HttpManager {
         getCellAttendanceRequest.addParameter("code", "");
         getCellAttendanceRequest.addParameter("range", "청년사역");
         getCellAttendanceRequest.addParameter("range1", mParish);
-        getCellAttendanceRequest.addParameter("range2", mUserId);
+        getCellAttendanceRequest.addParameter("range2", cellLeaderName);
         getCellAttendanceRequest.addParameter("startMonth", "01");
         getCellAttendanceRequest.addParameter("endMonth", "12");
 
@@ -291,16 +347,23 @@ public class HttpManager {
     }
 
     public void submitAttendance(int year, int week){
-        submitWorshipAttendance(year, week);
-        submitCellAttendance(year, week);
+        submitAttendance(mUserId, year, week);
     }
 
-    public void submitWorshipAttendance(int year, int week){
+    public void submitAttendance(String cellLeaderName, int year, int week){
+        submitWorshipAttendance(cellLeaderName, year, week);
+        submitCellAttendance(cellLeaderName, year, week);
+    }
+
+    public void submitWorshipAttendance(String cellLeaderName, int year, int week){
         Log.d(TAG, "submitWorshipAttendance year="+year+", week="+week);
         if(!isLoggedIn){
             Log.e(TAG, "NOT Logged in");
             return;
         }
+
+        if(!mCellMemberInfos.containsKey(cellLeaderName))
+            return;
 
         String requestUri = "https://sinch.dimode.co.kr/webrange/cell/weeklyRangeATTSUNOK.asp";
 
@@ -324,7 +387,7 @@ public class HttpManager {
         request.addHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
         request.addHeader("Cookie", mCookie);
 
-        for(CellMemberInfo info : mCellMemberInfo){
+        for(CellMemberInfo info : mCellMemberInfos.get(cellLeaderName)){
             CellMemberInfo.AttendanceData data = info.getAttendanceData(year, week);
             request.addParameter("id(" + data.getIndex() + ")", info.getId());
             request.addParameter("insName(" + data.getIndex() + ")", info.getName());
@@ -333,7 +396,7 @@ public class HttpManager {
             request.addParameter("reason(" + data.getIndex() + ")", data.getWorshipAbsentReason());
         }
 
-        request.addParameter("i", ""+mCellMemberInfo.size());
+        request.addParameter("i", ""+mCellMemberInfos.get(cellLeaderName).size());
         request.addParameter("setDate", "" + year);
         request.addParameter("staticYear", "" + year);
         request.addParameter("rno", "" + week);
@@ -341,12 +404,15 @@ public class HttpManager {
         request.start();
     }
 
-    public void submitCellAttendance(int year, int week){
+    public void submitCellAttendance(String cellLeaderName, int year, int week){
         Log.d(TAG, "submitCellAttendance year="+year+", week="+week);
         if(!isLoggedIn){
             Log.e(TAG, "NOT Logged in");
             return;
         }
+
+        if(!mCellMemberInfos.containsKey(cellLeaderName))
+            return;
 
         String requestUri = "https://sinch.dimode.co.kr/webrange/cell/weeklyRangeATTDAYOK.asp";
 
@@ -370,7 +436,7 @@ public class HttpManager {
         request.addHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
         request.addHeader("Cookie", mCookie);
 
-        for(CellMemberInfo info : mCellMemberInfo){
+        for(CellMemberInfo info : mCellMemberInfos.get(cellLeaderName)){
             CellMemberInfo.AttendanceData data = info.getAttendanceData(year, week);
             request.addParameter("id(" + data.getIndex() + ")", info.getId());
             request.addParameter("insName(" + data.getIndex() + ")", info.getName());
@@ -379,10 +445,67 @@ public class HttpManager {
             request.addParameter("reason(" + data.getIndex() + ")", data.getCellAbsentReason());
         }
 
-        request.addParameter("i", ""+mCellMemberInfo.size());
+        request.addParameter("i", ""+mCellMemberInfos.get(cellLeaderName).size());
         request.addParameter("setDate", "" + year);
         request.addParameter("staticYear", "" + year);
         request.addParameter("rno", "" + week);
+
+        request.start();
+    }
+
+    public void requestLeaderNameList(){
+        requestLeaderNameList(mParish);
+    }
+
+    public void requestLeaderNameList(final String parish){
+        Log.d(TAG, "requestLeaderNameList");
+        if(!isLoggedIn){
+            Log.e(TAG, "NOT Logged in");
+            return;
+        }
+
+        String requestUri = "https://sinch.dimode.co.kr/webrange/cell/rangelist_pers.asp";
+        HttpRequest request = new HttpRequest(REQUEST_CODE_REQUEST_LEADER_NAME, HttpRequest.GET, requestUri, new HttpResponse() {
+            @Override
+            public void onHttpResponse(int requestCode, int statusCode, Map<String, List<String>> headers, String body) {
+                if(requestCode != REQUEST_CODE_REQUEST_LEADER_NAME)
+                    return;
+
+                if(statusCode != 200){
+                    if(mListener != null)
+                        mListener.onRequestCellLeaderListResult(false, mParish, null);
+                    return;
+                }
+
+                Document doc = Jsoup.parse(body);
+                Elements elements = doc.select("select.selbox[name=range2] option");
+
+                ArrayList<String> leaderNameList = new ArrayList<>();
+
+                for(Element e : elements){
+                    String value = e.text();
+                    if(value != null && !value.isEmpty())
+                        leaderNameList.add(value);
+                }
+
+                if(mLeaderList.containsKey(parish))
+                    mLeaderList.remove(parish);
+
+                mLeaderList.put(parish, leaderNameList);
+
+                if(mListener != null)
+                    mListener.onRequestCellLeaderListResult(true, mParish, leaderNameList);
+
+            }
+        });
+
+        request.addHeader("Content-Type", "application/x-www-form-urlencoded");
+        request.addHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
+        request.addHeader("Cookie", mCookie);
+
+        request.addParameter("range", "청년사역");
+        request.addParameter("range1", mParish);
+        request.addParameter("range2", mUserId);
 
         request.start();
     }

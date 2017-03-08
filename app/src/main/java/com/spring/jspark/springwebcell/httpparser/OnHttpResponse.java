@@ -8,7 +8,8 @@ import java.util.ArrayList;
 
 public interface OnHttpResponse {
     public void onLoginResult(boolean isSuccess);
-    public void onRequestCellMemberInfoResult(boolean isSuccess);
-    public void onRequestCellMemberAttendanceResult(boolean isSuccess);
+    public void onRequestCellMemberInfoResult(boolean isSuccess, String leaderName, ArrayList<CellMemberInfo> memberInfo);
+    public void onRequestCellMemberAttendanceResult(boolean isSuccess, String leaderName, ArrayList<CellMemberInfo> memberInfo);
+    public void onRequestCellLeaderListResult(boolean isSuccess, String parish, ArrayList<String> cellLeaderList);
     public void onSubmitCellAttandanceResult(boolean isSuccess);
 }

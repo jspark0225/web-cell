@@ -15,9 +15,12 @@ import android.widget.EditText;
 import android.widget.Spinner;
 
 import com.spring.jspark.springwebcell.common.Common;
+import com.spring.jspark.springwebcell.httpparser.CellMemberInfo;
 import com.spring.jspark.springwebcell.httpparser.OnHttpResponse;
 import com.spring.jspark.springwebcell.httpparser.HttpManager;
 import com.spring.jspark.springwebcell.R;
+
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback, OnHttpResponse {
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -86,10 +89,17 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     @Override
-    public void onRequestCellMemberInfoResult(boolean isSuccess) {
+    public void onRequestCellMemberInfoResult(boolean isSuccess, String leaderName, ArrayList<CellMemberInfo> memberInfo) {
         if(isSuccess){
-            Intent intent = new Intent(MainActivity.this, CellMemberListActivity.class);
-            startActivity(intent);
+
+            if(leaderName.equals("박지수")) {
+                Intent intent = new Intent(MainActivity.this, ParishDashboardActivity.class);
+                startActivity(intent);
+
+            }else{
+                Intent intent = new Intent(MainActivity.this, CellMemberListActivity.class);
+                startActivity(intent);
+            }
         }
     }
 
@@ -99,7 +109,12 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     @Override
-    public void onRequestCellMemberAttendanceResult(boolean isSuccess) {
+    public void onRequestCellMemberAttendanceResult(boolean isSuccess, String leaderName, ArrayList<CellMemberInfo> memberInfo) {
+
+    }
+
+    @Override
+    public void onRequestCellLeaderListResult(boolean isSuccess, String parish, ArrayList<String> cellLeaderList) {
 
     }
 }

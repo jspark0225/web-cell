@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">SpringWebcell</string>
+    <string name="title_activity_parish_dashboard">ParishDashboardActivity</string>
 </resources>

@@ -55,14 +55,8 @@ public class CellMemberListActivity extends AppCompatActivity implements OnHttpR
     }
 
     @Override
-    public void onRequestCellMemberInfoResult(boolean isSuccess) {
-        if(isSuccess){
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                }
-            });
-        }
+    public void onRequestCellMemberInfoResult(boolean isSuccess, String leaderName, ArrayList<CellMemberInfo> memberInfo) {
+
     }
 
     @Override
@@ -70,15 +64,21 @@ public class CellMemberListActivity extends AppCompatActivity implements OnHttpR
     }
 
     @Override
-    public void onRequestCellMemberAttendanceResult(boolean isSuccess) {
+    public void onRequestCellMemberAttendanceResult(boolean isSuccess, String leaderName, ArrayList<CellMemberInfo> memberInfo) {
+        final ArrayList<CellMemberInfo> mem = memberInfo;
         if(isSuccess){
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    mAdapter.setMemberListInfo( HttpManager.getInstance().getCellMemberInfo() );
+                    mAdapter.setMemberListInfo( mem );
                     mAdapter.notifyDataSetChanged();
                 }
             });
         }
+    }
+
+    @Override
+    public void onRequestCellLeaderListResult(boolean isSuccess, String parish, ArrayList<String> cellLeaderList) {
+
     }
 }
