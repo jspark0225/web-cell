@@ -18,7 +18,6 @@
             </intent-filter>
         </activity>
         <activity android:name=".activity.CellMemberListActivity" />
-        <activity android:name=".activity.ParishDashboardActivity"></activity>
     </application>
 
 </manifest>

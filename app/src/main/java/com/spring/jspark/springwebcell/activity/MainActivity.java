@@ -14,10 +14,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 
-import com.spring.jspark.springwebcell.common.Common;
-import com.spring.jspark.springwebcell.httpparser.CellMemberInfo;
-import com.spring.jspark.springwebcell.httpparser.OnHttpResponse;
-import com.spring.jspark.springwebcell.httpparser.HttpManager;
+import com.spring.jspark.springwebcell.httpclient.model.CellMemberInfo;
+import com.spring.jspark.springwebcell.httpclient.OnHttpResponse;
+import com.spring.jspark.springwebcell.httpclient.WebCellHttpClient;
 import com.spring.jspark.springwebcell.R;
 
 import java.util.ArrayList;
@@ -39,7 +38,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.INTERNET}, REQUEST_INTERNET_PERMISSION);
         }
 
-        HttpManager.getInstance().setListener(this);
+        WebCellHttpClient.getInstance().setListener(this);
 
         ((Button)findViewById(R.id.login_btn)).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -47,7 +46,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 String loginId = ((EditText)findViewById(R.id.login_id)).getText().toString();
                 String password = ((EditText)findViewById(R.id.password)).getText().toString();
 
-                HttpManager.getInstance().login(loginId, password);
+                WebCellHttpClient.getInstance().requestLogin(loginId, password);
             }
         });
 
@@ -79,27 +78,20 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             public void run() {
                 if(_isSuccess){
                     String parish = (String)parishSelector.getSelectedItem();
-                    HttpManager.getInstance().setParish(parish);
-                    HttpManager.getInstance().requestCellMemberInfo();
+                    WebCellHttpClient.getInstance().setParish(parish);
+                    WebCellHttpClient.getInstance().requestCellMemberInfo();
                 }else{
-                    //TODO: show login failure dialog
+                    //TODO: show requestLogin failure dialog
                 }
             }
         });
     }
 
     @Override
-    public void onRequestCellMemberInfoResult(boolean isSuccess, String leaderName, ArrayList<CellMemberInfo> memberInfo) {
+    public void onRequestCellMemberInfoResult(boolean isSuccess, ArrayList<CellMemberInfo> memberInfo) {
         if(isSuccess){
-
-            if(leaderName.equals("박지수")) {
-                Intent intent = new Intent(MainActivity.this, ParishDashboardActivity.class);
-                startActivity(intent);
-
-            }else{
-                Intent intent = new Intent(MainActivity.this, CellMemberListActivity.class);
-                startActivity(intent);
-            }
+            Intent intent = new Intent(MainActivity.this, CellMemberListActivity.class);
+            startActivity(intent);
         }
     }
 
@@ -109,12 +101,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     @Override
-    public void onRequestCellMemberAttendanceResult(boolean isSuccess, String leaderName, ArrayList<CellMemberInfo> memberInfo) {
-
-    }
-
-    @Override
-    public void onRequestCellLeaderListResult(boolean isSuccess, String parish, ArrayList<String> cellLeaderList) {
+    public void onRequestCellMemberAttendanceResult(boolean isSuccess, int year, int week, ArrayList<CellMemberInfo> memberInfo) {
 
     }
 }

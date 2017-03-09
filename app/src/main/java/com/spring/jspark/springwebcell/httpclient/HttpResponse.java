@@ -1,4 +1,4 @@
-package com.spring.jspark.springwebcell.httpparser;
+package com.spring.jspark.springwebcell.httpclient;
 
 import java.util.List;
 import java.util.Map;

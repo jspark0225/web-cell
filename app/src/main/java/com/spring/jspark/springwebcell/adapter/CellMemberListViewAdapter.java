@@ -12,7 +12,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.spring.jspark.springwebcell.R;
-import com.spring.jspark.springwebcell.httpparser.CellMemberInfo;
+import com.spring.jspark.springwebcell.httpclient.model.CellMemberInfo;
 
 import java.util.ArrayList;
 
@@ -33,8 +33,13 @@ public class CellMemberListViewAdapter extends BaseAdapter{
         this.week = week;
     }
 
-    public void setMemberListInfo(ArrayList<CellMemberInfo> memberList){
+    public void setMemberListInfo(ArrayList<CellMemberInfo> memberList) {
         mMemberList = memberList;
+    }
+
+    public void setDate(int year, int week){
+        this.year = year;
+        this.week = week;
     }
 
     @Override
@@ -70,7 +75,6 @@ public class CellMemberListViewAdapter extends BaseAdapter{
         checkBox1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                Log.d("test", "onCheckedChanged position=" + pos + " isWorshipAttended=" + isChecked);
                 mMemberList.get(pos).getAttendanceData(year,week).setWorshipAttended(isChecked);
             }
         });
@@ -78,7 +82,6 @@ public class CellMemberListViewAdapter extends BaseAdapter{
         checkBox2.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                Log.d("test", "onCheckedChanged position=" + pos + " isCellAttended=" + isChecked);
                 mMemberList.get(pos).getAttendanceData(year,week).setCellAttended(isChecked);
             }
         });

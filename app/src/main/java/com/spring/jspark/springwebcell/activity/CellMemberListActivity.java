@@ -5,18 +5,17 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import com.spring.jspark.springwebcell.R;
 import com.spring.jspark.springwebcell.adapter.CellMemberListViewAdapter;
 import com.spring.jspark.springwebcell.common.Common;
-import com.spring.jspark.springwebcell.httpparser.CellMemberInfo;
-import com.spring.jspark.springwebcell.httpparser.HttpManager;
-import com.spring.jspark.springwebcell.httpparser.OnHttpResponse;
+import com.spring.jspark.springwebcell.httpclient.model.CellMemberInfo;
+import com.spring.jspark.springwebcell.httpclient.WebCellHttpClient;
+import com.spring.jspark.springwebcell.httpclient.OnHttpResponse;
 
 import java.util.ArrayList;
 
-public class CellMemberListActivity extends AppCompatActivity implements OnHttpResponse{
+public class CellMemberListActivity extends AppCompatActivity implements OnHttpResponse {
 
     int weekOfYear;
     int year;
@@ -32,21 +31,21 @@ public class CellMemberListActivity extends AppCompatActivity implements OnHttpR
         weekOfYear = Common.getTodaysWeekOfYear();
         year = Common.getTodaysYear();
 
-        HttpManager.getInstance().setListener(this);
-        mCellMemberList = HttpManager.getInstance().getCellMemberInfo();
+        WebCellHttpClient.getInstance().setListener(this);
+        mCellMemberList = WebCellHttpClient.getInstance().getCellMemberInfo();
 
         ListView listView = (ListView) findViewById(R.id.cell_member_list);
         mAdapter = new CellMemberListViewAdapter(mCellMemberList, year, weekOfYear);
         listView.setAdapter(mAdapter);
 
-        ((Button)findViewById(R.id.submit)).setOnClickListener(new View.OnClickListener() {
+        ((Button) findViewById(R.id.submit)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                HttpManager.getInstance().submitAttendance(year, weekOfYear);
+                WebCellHttpClient.getInstance().submitAttendance(year, weekOfYear);
             }
         });
 
-        HttpManager.getInstance().getCellMemberAttendance(year, weekOfYear);
+        WebCellHttpClient.getInstance().getCellMemberAttendance(year, weekOfYear);
     }
 
     @Override
@@ -55,7 +54,7 @@ public class CellMemberListActivity extends AppCompatActivity implements OnHttpR
     }
 
     @Override
-    public void onRequestCellMemberInfoResult(boolean isSuccess, String leaderName, ArrayList<CellMemberInfo> memberInfo) {
+    public void onRequestCellMemberInfoResult(boolean isSuccess, ArrayList<CellMemberInfo> memberInfo) {
 
     }
 
@@ -64,21 +63,16 @@ public class CellMemberListActivity extends AppCompatActivity implements OnHttpR
     }
 
     @Override
-    public void onRequestCellMemberAttendanceResult(boolean isSuccess, String leaderName, ArrayList<CellMemberInfo> memberInfo) {
+    public void onRequestCellMemberAttendanceResult(boolean isSuccess, int year, int week, ArrayList<CellMemberInfo> memberInfo) {
         final ArrayList<CellMemberInfo> mem = memberInfo;
-        if(isSuccess){
+        if (isSuccess) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    mAdapter.setMemberListInfo( mem );
+                    mAdapter.setMemberListInfo(mem);
                     mAdapter.notifyDataSetChanged();
                 }
             });
         }
-    }
-
-    @Override
-    public void onRequestCellLeaderListResult(boolean isSuccess, String parish, ArrayList<String> cellLeaderList) {
-
     }
 }
