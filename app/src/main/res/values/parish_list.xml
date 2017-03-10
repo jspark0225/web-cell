@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="parish_list" >
+        <item>교구를 선택하세요</item>
         <item>1교구</item>
         <item>2교구</item>
         <item>3교구</item>

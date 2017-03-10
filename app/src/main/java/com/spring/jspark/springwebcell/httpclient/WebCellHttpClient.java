@@ -125,41 +125,11 @@ public class WebCellHttpClient {
                     }
                 }
 
-                Document doc = Jsoup.parse(body);
-                Elements elements = doc.select("table tr[height=20] td[bgcolor=#FFFFFF]");
-
-                ArrayList<CellMemberInfo> cellMemberInfos = new ArrayList<>();
-
-                for(int i=0; i<elements.size()/11; i++){
-                    String name             = elements.get(i * 11 + 0).child(0).child(0).text();
-                    String id               = elements.get(i * 11 + 0).child(0).attr("href").split("tid=")[1].split("&")[0];
-                    String registerDate     = elements.get(i * 11 + 1).text();
-                    String birthday         = elements.get(i * 11 + 2).text();
-                    String email            = elements.get(i * 11 + 3).child(0).text();
-                    String phoneNumber      = elements.get(i * 11 + 4).child(0).text();
-                    String address          = elements.get(i * 11 + 5).child(0).text();
-                    String workingCompany   = elements.get(i * 11 + 6).child(0).text();
-                    String major            = elements.get(i * 11 + 7).child(0).text();
-                    String cellInfo         = elements.get(i * 11 + 8).child(0).text();
-                    String prevChurch       = elements.get(i * 11 + 9).child(0).text();
-                    String otherInfo        = elements.get(i * 11 + 10).child(0).text();
-
-                    CellMemberInfo memberInfo = new CellMemberInfo();
-                    memberInfo.setName(name);
-                    memberInfo.setId(id);
-                    memberInfo.setRegisteredDate(registerDate);
-                    memberInfo.setBirthday(birthday);
-                    memberInfo.setPhoneNumber(phoneNumber);
-                    memberInfo.setAddress(address);
-
-                    cellMemberInfos.add(memberInfo);
-                }
-
-                mCellMemberInfos = cellMemberInfos;
+                mCellMemberInfos = parseCellMemberInfo(body);
 
                 synchronized (mListener) {
                     if (mListener != null)
-                        mListener.onRequestCellMemberInfoResult(true, cellMemberInfos);
+                        mListener.onRequestCellMemberInfoResult(true, mCellMemberInfos);
                 }
             }
         });
@@ -406,5 +376,39 @@ public class WebCellHttpClient {
         request.addParameter("rno", "" + week);
 
         request.start();
+    }
+
+    private ArrayList<CellMemberInfo> parseCellMemberInfo(String body){
+        Document doc = Jsoup.parse(body);
+        Elements elements = doc.select("table tr[height=20] td[bgcolor=#FFFFFF]");
+
+        ArrayList<CellMemberInfo> cellMemberInfos = new ArrayList<>();
+
+        for(int i=0; i<elements.size()/11; i++){
+            String name             = elements.get(i * 11 + 0).child(0).child(0).text();
+            String id               = elements.get(i * 11 + 0).child(0).attr("href").split("tid=")[1].split("&")[0];
+            String registerDate     = elements.get(i * 11 + 1).text();
+            String birthday         = elements.get(i * 11 + 2).text();
+            String email            = elements.get(i * 11 + 3).child(0).text();
+            String phoneNumber      = elements.get(i * 11 + 4).child(0).text();
+            String address          = elements.get(i * 11 + 5).child(0).text();
+            String workingCompany   = elements.get(i * 11 + 6).child(0).text();
+            String major            = elements.get(i * 11 + 7).child(0).text();
+            String cellInfo         = elements.get(i * 11 + 8).child(0).text();
+            String prevChurch       = elements.get(i * 11 + 9).child(0).text();
+            String otherInfo        = elements.get(i * 11 + 10).child(0).text();
+
+            CellMemberInfo memberInfo = new CellMemberInfo();
+            memberInfo.setName(name);
+            memberInfo.setId(id);
+            memberInfo.setRegisteredDate(registerDate);
+            memberInfo.setBirthday(birthday);
+            memberInfo.setPhoneNumber(phoneNumber);
+            memberInfo.setAddress(address);
+
+            cellMemberInfos.add(memberInfo);
+        }
+
+        return cellMemberInfos;
     }
 }

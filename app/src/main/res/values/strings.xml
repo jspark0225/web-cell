@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">SpringWebcell</string>
     <string name="title_activity_parish_dashboard">ParishDashboardActivity</string>
+    <string name="please_select_parish">교구를 선택해주세요</string>
+    <string name="fail_to_login">로그인에 실패했습니다</string>
+    <string name="fail_to_get_cell_member">셀 정보를 가져오는데 실패했습니다</string>
 </resources>

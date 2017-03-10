@@ -8,14 +8,38 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
+    android:background="@mipmap/bg_image"
+    android:gravity="center"
     tools:context="com.spring.jspark.springwebcell.activity.MainActivity">
 
-    <EditText
-        android:id="@+id/login_id"
-        android:text="박지수"
+    <TextView
+        android:id="@+id/title_text_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="20sp" />
+        android:text="Shinchon Church\nWeb Cell"
+        android:gravity="center"
+        android:textColor="#FFFFFF"
+        android:textSize="30sp"
+        android:fontFamily="sans-serif"
+        />
+
+    <EditText
+        android:layout_below="@id/title_text_view"
+        android:inputType="text"
+        android:id="@+id/login_id"
+        android:text="ID를 입력하세요"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="15sp"
+        android:gravity="center"
+        android:textColor="#FFFFFF"
+        android:layout_marginTop="30dp"
+        android:layout_marginRight="30dp"
+        android:layout_marginLeft="30dp"
+        android:paddingTop="15dp"
+        android:paddingBottom="15dp"
+        android:background="@drawable/rounded_edit_text"
+        />
 
     <EditText
         android:layout_below="@id/login_id"
@@ -24,14 +48,31 @@
         android:text="1004"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="20sp" />
+        android:textSize="15sp"
+        android:gravity="center"
+        android:textColor="#FFFFFF"
+        android:layout_marginTop="15dp"
+        android:layout_marginRight="30dp"
+        android:layout_marginLeft="30dp"
+        android:paddingTop="15dp"
+        android:paddingBottom="15dp"
+        android:background="@drawable/rounded_edit_text"
+        />
 
-    <Spinner
+    <com.spring.jspark.springwebcell.view.CustomSpinner
         android:id="@+id/parish_spinner"
         android:layout_below="@+id/password"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-    </Spinner>
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textColor="#FFFFFF"
+        android:layout_marginTop="15dp"
+        android:layout_marginRight="30dp"
+        android:layout_marginLeft="30dp"
+        android:popupBackground="@android:color/transparent"
+        android:background="@drawable/rounded_edit_spinner"
+        >
+    </com.spring.jspark.springwebcell.view.CustomSpinner>
 
     <Button
         android:layout_below="@id/parish_spinner"
@@ -39,6 +80,16 @@
         android:text="Login"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="20sp"/>
+        android:textSize="15sp"
+        android:gravity="center"
+        android:textColor="#FFFFFF"
+        android:layout_marginTop="15dp"
+        android:layout_marginRight="30dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginBottom="20dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:background="@drawable/rounded_edit_btn"
+     />
 
 </RelativeLayout>
