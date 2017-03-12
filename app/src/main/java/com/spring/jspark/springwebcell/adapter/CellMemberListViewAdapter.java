@@ -1,14 +1,18 @@
 package com.spring.jspark.springwebcell.adapter;
 
 import android.content.Context;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.spring.jspark.springwebcell.R;
@@ -24,6 +28,8 @@ public class CellMemberListViewAdapter extends BaseAdapter{
 
     private int year;
     private int week;
+
+    String reason = "";
 
     ArrayList<CellMemberInfo> mMemberList;
 
@@ -59,8 +65,10 @@ public class CellMemberListViewAdapter extends BaseAdapter{
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+
         final int pos = position;
         final Context context = parent.getContext();
+
 
         if(convertView == null){
             LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -70,7 +78,8 @@ public class CellMemberListViewAdapter extends BaseAdapter{
         CheckBox checkBox1 = (CheckBox) convertView.findViewById(R.id.checkbox1);
         CheckBox checkBox2 = (CheckBox) convertView.findViewById(R.id.checkbox2);
         TextView textView = (TextView) convertView.findViewById(R.id.textview);
-        EditText editText = (EditText) convertView.findViewById(R.id.edittext);
+        final Spinner spinner = (Spinner) convertView.findViewById(R.id.reason_list);
+        final EditText editText = (EditText) convertView.findViewById(R.id.edittext);
 
         checkBox1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -85,6 +94,24 @@ public class CellMemberListViewAdapter extends BaseAdapter{
                 mMemberList.get(pos).getAttendanceData(year,week).setCellAttended(isChecked);
             }
         });
+
+
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            public void onItemSelected(AdapterView<?>  parent, View view, int position, long id) {
+                if(spinner.getSelectedItemPosition() != 0){
+                    reason = reason + spinner.getSelectedItem().toString();
+                    mMemberList.get(pos).getAttendanceData(year,week).setCellAbsentReason(reason);
+                }
+            };
+
+            @Override
+            public void onNothingSelected(AdapterView<?> arg0)
+            {
+
+            }
+        });
+
+
 
 
         CellMemberInfo info = mMemberList.get(position);

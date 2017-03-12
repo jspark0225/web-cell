@@ -17,4 +17,9 @@ public class Common {
     public static int getTodaysYear(){
         return Calendar.getInstance().get(Calendar.YEAR);
     }
+    public static int getTodaysMonth() { return Calendar.getInstance().get(Calendar.MONTH); }
+    public static int getDeafaultDate(){
+        return Calendar.getInstance().get(Calendar.DAY_OF_MONTH) - Calendar.getInstance().get(Calendar.DAY_OF_WEEK) + 1;
+    }
+
 }
