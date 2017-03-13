@@ -40,6 +40,7 @@ import java.util.Calendar;
 import static java.security.AccessController.getContext;
 
 public class CellMemberListActivity extends AppCompatActivity implements OnHttpResponse {
+    public static final int RESULT_CODE_TERMINATE = 1;
 
     int weekOfYear;
     int year;
@@ -173,6 +174,20 @@ public class CellMemberListActivity extends AppCompatActivity implements OnHttpR
                     mAdapter.notifyDataSetChanged();
                 }
             });
+        }
+    }
+
+    long mFirstBackPressedTime = 0;
+
+    @Override
+    public void onBackPressed() {
+        long backPressedTime = System.currentTimeMillis();
+
+        if(backPressedTime - mFirstBackPressedTime < 2000){
+            finish();
+        }else{
+            Toast.makeText(getApplicationContext(), "'뒤로'버튼 한번 더 누르시면 종료됩니다", Toast.LENGTH_SHORT).show();
+            mFirstBackPressedTime = backPressedTime;
         }
     }
 

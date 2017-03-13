@@ -29,6 +29,7 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback, OnHttpResponse {
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int REQUEST_INTERNET_PERMISSION = 1;
+    public static final int REQUEST_CODE_TERMINATE = 0;
 
     CustomSpinner mParishSpinner;
     EditText mLoginEditText;
@@ -192,7 +193,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     public void onRequestCellMemberInfoResult(boolean isSuccess, ArrayList<CellMemberInfo> memberInfo) {
         if(isSuccess){
             Intent intent = new Intent(MainActivity.this, CellMemberListActivity.class);
-            startActivity(intent);
+            startActivityForResult(intent, REQUEST_CODE_TERMINATE);
         }else{
             runOnUiThread(new Runnable() {
                 @Override
@@ -213,5 +214,12 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     @Override
     public void onRequestCellMemberAttendanceResult(boolean isSuccess, int year, int week, ArrayList<CellMemberInfo> memberInfo) {
 
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(requestCode == REQUEST_CODE_TERMINATE){
+            finish();
+        }
     }
 }
