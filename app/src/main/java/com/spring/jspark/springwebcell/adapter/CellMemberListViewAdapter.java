@@ -94,7 +94,6 @@ public class CellMemberListViewAdapter extends BaseAdapter{
         final int pos = position;
         final Context context = parent.getContext();
 
-
         if(convertView == null){
             LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             convertView = inflater.inflate(R.layout.cell_member_list_view_item, parent, false);
@@ -128,8 +127,6 @@ public class CellMemberListViewAdapter extends BaseAdapter{
         TextView textView = (TextView) convertView.findViewById(R.id.textview);
         CustomSpinner reasonSpinner = (CustomSpinner) convertView.findViewById(R.id.reason);
         EditText reasonEditText = (EditText) convertView.findViewById(R.id.prayer_point);
-        final Spinner spinner = (Spinner) convertView.findViewById(R.id.reason_list);
-        final EditText editText = (EditText) convertView.findViewById(R.id.edittext);
 
         CellMemberInfo info = mMemberList.get(position);
         AttendanceData attendanceData = info.getAttendanceData(year, week);
@@ -169,6 +166,8 @@ public class CellMemberListViewAdapter extends BaseAdapter{
             absentReason = "";
             otherReason = reason;
         }
+
+        reasonEditText.setText(otherReason);
 
         return convertView;
     }

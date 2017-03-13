@@ -40,12 +40,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     SharedPreferences.Editor editor;
 
 
-    EditText loginId;
-    EditText password;
-    SharedPreferences pref;
-    SharedPreferences.Editor editor;
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,11 +59,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         pref = getSharedPreferences("pref", MODE_PRIVATE);
         editor = pref.edit();
-
-
-
-
-
 
         WebCellHttpClient.getInstance().setListener(this);
 
