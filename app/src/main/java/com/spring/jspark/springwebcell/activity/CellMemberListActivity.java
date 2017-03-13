@@ -160,7 +160,7 @@ public class CellMemberListActivity extends AppCompatActivity implements OnHttpR
     }
 
     @Override
-    public void onRequestCellMemberAttendanceResult(boolean isSuccess, int year, int week, ArrayList<CellMemberInfo> memberInfo) {
+    public void onRequestCellMemberAttendanceResult(boolean isSuccess, final int year, final int week, ArrayList<CellMemberInfo> memberInfo) {
 
         // final ArrayList<CellMemberInfo> mem = memberInfo;
         mCellMemberList = memberInfo;
@@ -168,6 +168,7 @@ public class CellMemberListActivity extends AppCompatActivity implements OnHttpR
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    mAdapter.setDate(year, week);
                     mAdapter.setMemberListInfo(mCellMemberList);
                     mAdapter.notifyDataSetChanged();
                 }

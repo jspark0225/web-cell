@@ -165,6 +165,7 @@ public class CellMemberListViewAdapter extends BaseAdapter{
         else{
             absentReason = "";
             otherReason = reason;
+            reasonSpinner.setSelection(0);
         }
 
         reasonEditText.setText(otherReason);
