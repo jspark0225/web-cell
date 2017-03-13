@@ -2,6 +2,7 @@ package com.spring.jspark.springwebcell.activity;
 
 import android.Manifest;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -33,9 +34,17 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     EditText mLoginEditText;
     EditText mPasswordEditText;
 
+    EditText loginId;
+    EditText password;
+    SharedPreferences pref;
+    SharedPreferences.Editor editor;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
 
         setContentView(R.layout.activity_main);
 
@@ -44,6 +53,17 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         if(permissionInternet != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.INTERNET}, REQUEST_INTERNET_PERMISSION);
         }
+
+        loginId = (EditText)findViewById(R.id.login_id);
+        password = (EditText)findViewById(R.id.password);
+
+        pref = getSharedPreferences("pref", MODE_PRIVATE);
+        editor = pref.edit();
+
+
+
+
+
 
         WebCellHttpClient.getInstance().setListener(this);
 
@@ -85,10 +105,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     return;
                 }
 
-                String loginId = ((EditText)findViewById(R.id.login_id)).getText().toString();
-                String password = ((EditText)findViewById(R.id.password)).getText().toString();
-
-                WebCellHttpClient.getInstance().requestLogin(loginId, password);
+                WebCellHttpClient.getInstance().requestLogin(loginId.getText().toString(), password.getText().toString());
             }
         });
 
@@ -128,6 +145,12 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 mParishSpinner.setSelection(position);
             }
         });
+
+        if(pref.getBoolean("login_enabled", false)){
+            loginId.setText(pref.getString("id", ""));
+            password.setText(pref.getString("pw", ""));
+            mParishSpinner.setSelection(pref.getInt("parishPos", 0));
+        }
     }
 
     @Override
@@ -153,6 +176,12 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             @Override
             public void run() {
                 if(_isSuccess){
+                    editor.putString("id", loginId.getText().toString());
+                    editor.putString("pw", password.getText().toString());
+                    editor.putInt("parishPos", mParishSpinner.getSelectedItemPosition());
+                    editor.putBoolean("login_enabled", true);
+                    editor.commit();
+
                     String parish = (String)mParishSpinner.getSelectedItem();
                     //WebCellHttpClient.getInstance().setParish(parish);
                     WebCellHttpClient.getInstance().requestCellMemberInfo();

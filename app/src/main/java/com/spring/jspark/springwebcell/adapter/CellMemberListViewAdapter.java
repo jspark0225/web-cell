@@ -13,6 +13,7 @@ import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.spring.jspark.springwebcell.R;
@@ -34,6 +35,8 @@ public class CellMemberListViewAdapter extends BaseAdapter{
 
     private int year;
     private int week;
+
+    String reason = "";
 
     ArrayList<CellMemberInfo> mMemberList;
     boolean[] isThereUpdatedData;
@@ -91,6 +94,7 @@ public class CellMemberListViewAdapter extends BaseAdapter{
         final int pos = position;
         final Context context = parent.getContext();
 
+
         if(convertView == null){
             LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             convertView = inflater.inflate(R.layout.cell_member_list_view_item, parent, false);
@@ -124,6 +128,8 @@ public class CellMemberListViewAdapter extends BaseAdapter{
         TextView textView = (TextView) convertView.findViewById(R.id.textview);
         CustomSpinner reasonSpinner = (CustomSpinner) convertView.findViewById(R.id.reason);
         EditText reasonEditText = (EditText) convertView.findViewById(R.id.prayer_point);
+        final Spinner spinner = (Spinner) convertView.findViewById(R.id.reason_list);
+        final EditText editText = (EditText) convertView.findViewById(R.id.edittext);
 
         CellMemberInfo info = mMemberList.get(position);
         AttendanceData attendanceData = info.getAttendanceData(year, week);
@@ -163,9 +169,6 @@ public class CellMemberListViewAdapter extends BaseAdapter{
             absentReason = "";
             otherReason = reason;
         }
-
-        reasonEditText.setText( otherReason );
-
 
         return convertView;
     }
