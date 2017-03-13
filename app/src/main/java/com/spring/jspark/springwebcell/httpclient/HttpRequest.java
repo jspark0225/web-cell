@@ -46,6 +46,13 @@ public class HttpRequest extends  Thread{
     }
 
     public void addParameter(String key, String value){
+        if(key == null)
+            Log.d(TAG, "key is null");
+
+        if(value == null)
+            Log.d(TAG, "value is null. key" + key);
+
+
         parameters.put(key, value);
     }
 

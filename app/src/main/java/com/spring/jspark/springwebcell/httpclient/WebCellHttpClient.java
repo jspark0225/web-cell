@@ -192,7 +192,11 @@ public class WebCellHttpClient {
 
                         data.setIndex(Integer.parseInt(index));
                         data.setWorshipAttended(elements.get(i * 4 + 2).attributes().hasKey("checked"));
-                        data.setWorshipAbsentReason(elements.get(i * 4 + 3).attr("value"));
+
+                        String reason = elements.get(i * 4 + 3).attr("value");
+
+                        if(reason != null && !reason.isEmpty())
+                            data.setAbsentReason(reason);
                     }
                 }
 
@@ -254,7 +258,11 @@ public class WebCellHttpClient {
                         AttendanceData data = memberInfo.getAttendanceData(targetYear, targetWeek);
 
                         data.setCellAttended(elements.get(i * 4 + 2).attributes().hasKey("checked"));
-                        data.setCellAbsentReason(elements.get(i * 4 + 3).attr("value"));
+
+                        String reason = elements.get(i * 4 + 3).attr("value");
+
+                        if(reason != null && !reason.isEmpty())
+                            data.setAbsentReason(reason);
                     }
                 }
                 synchronized (mListener) {
@@ -321,7 +329,7 @@ public class WebCellHttpClient {
             request.addParameter("insName(" + data.getIndex() + ")", info.getName());
             if(data.isWorshipAttended())
                 request.addParameter("ds(" + data.getIndex() + ")", "O");
-            request.addParameter("reason(" + data.getIndex() + ")", data.getWorshipAbsentReason());
+            request.addParameter("reason(" + data.getIndex() + ")", data.getAbsentReason());
         }
 
         request.addParameter("i", ""+mCellMemberInfos.size());
@@ -367,7 +375,7 @@ public class WebCellHttpClient {
             request.addParameter("insName(" + data.getIndex() + ")", info.getName());
             if(data.isCellAttended())
                 request.addParameter("ds(" + data.getIndex() + ")", "O");
-            request.addParameter("reason(" + data.getIndex() + ")", data.getCellAbsentReason());
+            request.addParameter("reason(" + data.getIndex() + ")", data.getAbsentReason());
         }
 
         request.addParameter("i", ""+mCellMemberInfos.size());

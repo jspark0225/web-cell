@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_cell_member_list"
     android:layout_width="match_parent"
@@ -9,12 +9,14 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
+    android:orientation="vertical"
     tools:context="com.spring.jspark.springwebcell.activity.CellMemberListActivity">
 
     <LinearLayout
         android:id="@+id/title"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="0.5"
         android:orientation="horizontal"
         >
         <TextView
@@ -55,17 +57,39 @@
             />
     </LinearLayout>
 
-    <ListView
-        android:layout_below="@+id/title"
-        android:id="@+id/cell_member_list"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-    </ListView>
-    <Button
-        android:layout_alignParentBottom="true"
-        android:id="@+id/submit"
+        android:layout_height="0dp"
+        android:layout_weight="8.5"
+        android:orientation="vertical"
+        >
+        <ListView
+            android:layout_below="@+id/title"
+            android:id="@+id/cell_member_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+        </ListView>
+    </LinearLayout>
+
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="send"
-        />
-</RelativeLayout>
+        android:layout_height="0dp"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:paddingTop="10dp"
+
+        android:layout_weight="1">
+        <Button
+            android:layout_alignParentBottom="true"
+            android:id="@+id/submit"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="2dp"
+            android:text="제출하기"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:background="@drawable/rounded_edit_submit_btn"
+            />
+    </LinearLayout>
+
+</LinearLayout>
