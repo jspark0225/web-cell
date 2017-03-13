@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_cell_member_list"
     android:layout_width="match_parent"
@@ -9,7 +9,6 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    android:orientation="vertical"
     tools:context="com.spring.jspark.springwebcell.activity.CellMemberListActivity">
 
 
@@ -18,12 +17,10 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:orientation="horizontal"
-        >
-
+        android:orientation="horizontal">
         <TextView
             android:id="@+id/dateText"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical|center_horizontal"
             android:layout_marginLeft="10dp"
@@ -31,16 +28,16 @@
             android:layout_weight="9"
             android:textAlignment="center"
             android:textColor="#000000"
-            android:textSize="17sp" />
+            android:textSize="25sp" />
 
         <ImageButton
             android:id="@+id/calBtn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
             android:layout_gravity="center_vertical|center_horizontal"
             android:layout_marginRight="10dp"
             android:layout_weight="1"
-            android:background="@android:drawable/ic_menu_today"
+            android:background="@mipmap/calendar_icon"
             android:onClick="calBtnOnClick" />
     </LinearLayout>
 
@@ -48,7 +45,7 @@
         android:id="@+id/title_prompt"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.5"
+        android:layout_weight="1"
         android:orientation="horizontal">
 
         <TextView
@@ -85,39 +82,18 @@
             android:textSize="15sp" />
     </LinearLayout>
 
-    <LinearLayout
+    <ListView
+        android:layout_below="@+id/cell_member_date"
+        android:layout_above="@+id/submit"
+        android:id="@+id/cell_member_list"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="7.5"
-        android:orientation="vertical"
-        >
-        <ListView
-            android:layout_below="@+id/title"
-            android:id="@+id/cell_member_list"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-        </ListView>
-    </LinearLayout>
-
-    <LinearLayout
+        android:layout_height="wrap_content">
+    </ListView>
+    <Button
+        android:layout_alignParentBottom="true"
+        android:id="@+id/submit"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:paddingLeft="20dp"
-        android:paddingRight="20dp"
-        android:paddingTop="10dp"
-
-        android:layout_weight="1">
-        <Button
-            android:layout_alignParentBottom="true"
-            android:id="@+id/submit"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginBottom="2dp"
-            android:text="제출하기"
-            android:textColor="#FFFFFF"
-            android:textSize="15sp"
-            android:background="@drawable/rounded_edit_submit_btn"
-            />
-    </LinearLayout>
-
-</LinearLayout>
+        android:layout_height="wrap_content"
+        android:text="send"
+        />
+</RelativeLayout>
