@@ -6,8 +6,7 @@ package com.spring.jspark.springwebcell.httpclient.model;
 
 public class AttendanceData {
     private int index;
-    private String worshipAbsentReason;
-    private String cellAbsentReason;
+    private String absentReason;
     private boolean isWorshipAttended = false;
     private boolean isCellAttended = false;
     private int year;
@@ -16,6 +15,7 @@ public class AttendanceData {
     public AttendanceData(int year, int week){
         this.year = year;
         this.week = week;
+        absentReason = "";
     }
 
     public int getIndex() {
@@ -26,20 +26,12 @@ public class AttendanceData {
         this.index = index;
     }
 
-    public String getWorshipAbsentReason() {
-        return worshipAbsentReason;
+    public String getAbsentReason() {
+        return absentReason;
     }
 
-    public void setWorshipAbsentReason(String worshipAbsentReason) {
-        this.worshipAbsentReason = worshipAbsentReason;
-    }
-
-    public String getCellAbsentReason() {
-        return cellAbsentReason;
-    }
-
-    public void setCellAbsentReason(String cellAbsentReason) {
-        this.cellAbsentReason = cellAbsentReason;
+    public void setAbsentReason(String absentReason) {
+        this.absentReason = absentReason;
     }
 
     public boolean isWorshipAttended() {
@@ -56,5 +48,17 @@ public class AttendanceData {
 
     public void setCellAttended(boolean cellAttended) {
         isCellAttended = cellAttended;
+    }
+
+    @Override
+    public String toString() {
+        return "AttendanceData{" +
+                "index=" + index +
+                ", absentReason='" + absentReason + '\'' +
+                ", isWorshipAttended=" + isWorshipAttended +
+                ", isCellAttended=" + isCellAttended +
+                ", year=" + year +
+                ", week=" + week +
+                '}';
     }
 }

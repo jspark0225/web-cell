@@ -7,6 +7,7 @@ import java.util.Calendar;
  */
 
 public class Common {
+    public static final String REASON_DELIMETER = "///";
 
     public static final String[] SPRING_PARISHS = {"청년사역", "1교구", "2교구", "3교구", "4교구", "5교구", "6교구", "7교구"};
 
@@ -21,5 +22,4 @@ public class Common {
     public static int getDeafaultDate(){
         return Calendar.getInstance().get(Calendar.DAY_OF_MONTH) - Calendar.getInstance().get(Calendar.DAY_OF_WEEK) + 1;
     }
-
 }

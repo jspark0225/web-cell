@@ -31,6 +31,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private static final int REQUEST_INTERNET_PERMISSION = 1;
 
     CustomSpinner mParishSpinner;
+    EditText mLoginEditText;
+    EditText mPasswordEditText;
+
+    EditText loginId;
+    EditText password;
+    SharedPreferences pref;
+    SharedPreferences.Editor editor;
+
 
     EditText loginId;
     EditText password;
@@ -64,6 +72,34 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
 
         WebCellHttpClient.getInstance().setListener(this);
+
+        mLoginEditText = (EditText) findViewById(R.id.login_id);
+        mPasswordEditText = (EditText) findViewById(R.id.password);
+
+        mLoginEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if(hasFocus){
+                    mLoginEditText.setText("");
+                }else{
+                    if( mLoginEditText.getText().toString().isEmpty())
+                        mLoginEditText.setText("ID를 입력하세요");
+                }
+            }
+        });
+
+        mPasswordEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if(hasFocus){
+                    mPasswordEditText.setText("");
+                }else{
+                    if( mPasswordEditText.getText().toString().isEmpty())
+                        mPasswordEditText.setText("1234");
+                }
+            }
+        });
+
 
         ((Button)findViewById(R.id.login_btn)).setOnClickListener(new View.OnClickListener() {
             @Override
