@@ -50,6 +50,10 @@ public class AttendanceData {
         isCellAttended = cellAttended;
     }
 
+    public boolean isAbsentReasonExists(){
+        return (absentReason != null && !absentReason.isEmpty());
+    }
+
     @Override
     public String toString() {
         return "AttendanceData{" +

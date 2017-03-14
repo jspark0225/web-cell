@@ -261,7 +261,7 @@ public class WebCellHttpClient {
 
                         String reason = elements.get(i * 4 + 3).attr("value");
 
-                        if(reason != null && !reason.isEmpty())
+                        if(reason != null && !reason.isEmpty() && !data.isAbsentReasonExists())
                             data.setAbsentReason(reason);
                     }
                 }
@@ -375,7 +375,9 @@ public class WebCellHttpClient {
             request.addParameter("insName(" + data.getIndex() + ")", info.getName());
             if(data.isCellAttended())
                 request.addParameter("ds(" + data.getIndex() + ")", "O");
-            request.addParameter("reason(" + data.getIndex() + ")", data.getAbsentReason());
+
+            String cellAbsentReason = data.getAbsentReason().length() > 25 ? data.getAbsentReason().substring(0, 24) : data.getAbsentReason();
+            //request.addParameter("reason(" + data.getIndex() + ")", cellAbsentReason);
         }
 
         request.addParameter("i", ""+mCellMemberInfos.size());
