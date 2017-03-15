@@ -14,8 +14,6 @@ public interface MainContract {
         void updatePasswordEditText(String content);
         void updateParishSpinner(int position);
         void showToastMessage(String message);
-        void onLoginResult(boolean isSuccess);
-        String getStringFromResource(int id);
         void goToCellMemberActivity();
     }
 
@@ -25,8 +23,7 @@ public interface MainContract {
         void setAlarm(Context context);
         void onIdFocusChanged(EditText editText);
         void onPasswordFocusChanged(EditText editText);
-        void onLoginButtonClicked(Context context, String id, String password, int selectedPosition, String parish);
-        void getSavedLoginData(Context context);
-        void saveLoginData(Context context, String id, String password, int position);
+        void onLoginButtonClicked(String id, String password, int selectedPosition, String parish);
+        void getSavedLoginData();
     }
 }

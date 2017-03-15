@@ -6,16 +6,15 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.view.View;
 import android.widget.EditText;
-import android.widget.Spinner;
 
 import com.spring.jspark.springwebcell.R;
+import com.spring.jspark.springwebcell.utils.ResourceManager;
+import com.spring.jspark.springwebcell.utils.SharedPreferenceManager;
 import com.spring.jspark.springwebcell.contract.MainContract;
 import com.spring.jspark.springwebcell.httpclient.OnHttpResponse;
 import com.spring.jspark.springwebcell.httpclient.WebCellHttpClient;
@@ -98,56 +97,48 @@ public class MainPresenter implements MainContract.Presenter {
     }
 
     @Override
-    public void onLoginButtonClicked(Context context, String id, String password, int selectedPosition, String parish) {
+    public void onLoginButtonClicked(String id, String password, int selectedPosition, String parish) {
         if(id == null || id.isEmpty()){
-            mView.showToastMessage(context.getResources().getString(R.string.please_type_id));
+            mView.showToastMessage(ResourceManager.getInstance().getString(R.string.please_type_id));
             return;
         }
 
         if(password == null || password.isEmpty()){
-            mView.showToastMessage(context.getResources().getString(R.string.please_type_password));
+            mView.showToastMessage(ResourceManager.getInstance().getString(R.string.please_type_password));
             return;
         }
 
         if(parish == null || parish.isEmpty() || selectedPosition == 0){
-            mView.showToastMessage(context.getResources().getString(R.string.please_select_parish));
+            mView.showToastMessage(ResourceManager.getInstance().getString(R.string.please_select_parish));
         }
 
+        SharedPreferenceManager.getInstance().putLoginData(id, password, selectedPosition, true);
         WebCellHttpClient.getInstance().requestLogin(id, password);
+        WebCellHttpClient.getInstance().setParish(parish);
     }
 
     @Override
-    public void getSavedLoginData(Context context) {
-        SharedPreferences pref = context.getSharedPreferences("pref", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = pref.edit();
+    public void getSavedLoginData() {
+        String id = SharedPreferenceManager.getInstance().getStoredId();
+        String pw = SharedPreferenceManager.getInstance().getStoredPassword();
+        int parish = SharedPreferenceManager.getInstance().getStoredParish();
+        boolean loginEnabled = SharedPreferenceManager.getInstance().getStoredLoginEnabled();
 
-        if(pref.getBoolean("login_enabled", false)){
-            mView.updateIdEditText(pref.getString("id", ""));
-            mView.updatePasswordEditText(pref.getString("pw", ""));
-            mView.updateParishSpinner(pref.getInt("parishPos", 0));
+        if(loginEnabled){
+            mView.updateIdEditText(id);
+            mView.updatePasswordEditText(pw);
+            mView.updateParishSpinner(parish);
         }
-    }
-
-    @Override
-    public void saveLoginData(Context context, String id, String password, int position) {
-        SharedPreferences pref = context.getSharedPreferences("pref", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = pref.edit();
-
-        editor.putString("id", id);
-        editor.putString("pw", password);
-        editor.putInt("parishPos", position);
-        editor.putBoolean("login_enabled", true);
-        editor.commit();
     }
 
     OnHttpResponse mHttpResponse = new OnHttpResponse() {
         @Override
         public void onLoginResult(boolean isSuccess) {
             if (isSuccess) {
-                mView.onLoginResult(isSuccess);
                 WebCellHttpClient.getInstance().requestCellMemberInfo();
             } else {
-                String errorMsg = mView.getStringFromResource(R.string.fail_to_login);
+                SharedPreferenceManager.getInstance().clearLoginData();
+                String errorMsg = ResourceManager.getInstance().getString(R.string.fail_to_login);
                 mView.showToastMessage(errorMsg);
             }
         }
@@ -157,7 +148,7 @@ public class MainPresenter implements MainContract.Presenter {
             if(isSuccess){
                 mView.goToCellMemberActivity();
             }else{
-                String errorMsg = mView.getStringFromResource(R.string.fail_to_get_cell_member);
+                String errorMsg = ResourceManager.getInstance().getString(R.string.fail_to_get_cell_member);
                 mView.showToastMessage(errorMsg);
             }
         }
@@ -168,7 +159,12 @@ public class MainPresenter implements MainContract.Presenter {
         }
 
         @Override
-        public void onSubmitCellAttandanceResult(boolean isSuccess) {
+        public void onSubmitCellAttendanceResult(boolean isSuccess) {
+
+        }
+
+        @Override
+        public void onSubmitWorshipAttendanceResult(boolean isSuccess) {
 
         }
     };

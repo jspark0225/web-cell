@@ -311,10 +311,10 @@ public class WebCellHttpClient {
 
                 if(statusCode != 200){
                     if(mListener != null)
-                        mListener.onSubmitCellAttandanceResult(false);
+                        mListener.onSubmitWorshipAttendanceResult(false);
                 }else{
                     if(mListener != null)
-                        mListener.onSubmitCellAttandanceResult(true);
+                        mListener.onSubmitWorshipAttendanceResult(true);
                 }
             }
         });
@@ -357,10 +357,10 @@ public class WebCellHttpClient {
 
                 if(statusCode != 200){
                     if(mListener != null)
-                        mListener.onSubmitCellAttandanceResult(false);
+                        mListener.onSubmitCellAttendanceResult(false);
                 }else{
                     if(mListener != null)
-                        mListener.onSubmitCellAttandanceResult(true);
+                        mListener.onSubmitCellAttendanceResult(true);
                 }
             }
         });

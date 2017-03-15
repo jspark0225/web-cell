@@ -12,5 +12,6 @@ public interface OnHttpResponse {
     public void onLoginResult(boolean isSuccess);
     public void onRequestCellMemberInfoResult(boolean isSuccess, ArrayList<CellMemberInfo> memberInfo);
     public void onRequestCellMemberAttendanceResult(boolean isSuccess, int year, int week, ArrayList<CellMemberInfo> memberInfo);
-    public void onSubmitCellAttandanceResult(boolean isSuccess);
+    public void onSubmitCellAttendanceResult(boolean isSuccess);
+    public void onSubmitWorshipAttendanceResult(boolean isSuccess);
 }

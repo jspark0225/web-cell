@@ -43,11 +43,12 @@ public class CellMemberListViewAdapter extends BaseAdapter{
 
     Map<Integer, View> mChildViews = new HashMap<>();
 
-    public CellMemberListViewAdapter(ArrayList<CellMemberInfo> memberList, int year, int week){
-        setMemberListInfo(memberList);
-        this.year = year;
-        this.week = week;
+    public CellMemberListViewAdapter(){
+        mMemberList = new ArrayList<>();
+    }
 
+    public void setMemberListInfo(ArrayList<CellMemberInfo> memberList) {
+        mMemberList = memberList;
         isThereUpdatedData = new boolean[memberList.size()];
         clearUpdatedData();
     }
@@ -55,10 +56,6 @@ public class CellMemberListViewAdapter extends BaseAdapter{
     private void clearUpdatedData(){
         for(int i=0; i<isThereUpdatedData.length; i++)
             isThereUpdatedData[i] = false;
-    }
-
-    public void setMemberListInfo(ArrayList<CellMemberInfo> memberList) {
-        mMemberList = memberList;
     }
 
     public void setDate(int year, int week){

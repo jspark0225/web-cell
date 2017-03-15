@@ -6,4 +6,7 @@
     <string name="please_select_parish">교구를 선택해주세요</string>
     <string name="fail_to_login">로그인에 실패했습니다</string>
     <string name="fail_to_get_cell_member">셀 정보를 가져오는데 실패했습니다</string>
+    <string name="warning_for_app_terminating">\'뒤로\'버튼 한번 더 누르시면 종료됩니다</string>
+    <string name="webcell_submit_success">웹셀 체크 완료되었습니다</string>
+    <string name="webcell_submit_failure">웹셀 체크에 실패했습니다</string>
 </resources>

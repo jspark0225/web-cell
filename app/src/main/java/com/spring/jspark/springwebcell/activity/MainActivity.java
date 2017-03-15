@@ -11,14 +11,11 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.spring.jspark.springwebcell.R;
+import com.spring.jspark.springwebcell.utils.ResourceManager;
+import com.spring.jspark.springwebcell.utils.SharedPreferenceManager;
 import com.spring.jspark.springwebcell.contract.MainContract;
-import com.spring.jspark.springwebcell.httpclient.model.CellMemberInfo;
-import com.spring.jspark.springwebcell.httpclient.OnHttpResponse;
-import com.spring.jspark.springwebcell.httpclient.WebCellHttpClient;
 import com.spring.jspark.springwebcell.presenter.MainPresenter;
 import com.spring.jspark.springwebcell.view.CustomSpinner;
-
-import java.util.ArrayList;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -54,6 +51,9 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
+        SharedPreferenceManager.getInstance().setContex(this);
+        ResourceManager.getInstance().setContext(this);
+
         mPresenter = new MainPresenter();
         mPresenter.setView(this);
         mPresenter.getPermission(this);
@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
         mParishSpinner.setAdapter(closedAdapter);
         mParishSpinner.setSpinnerEventsListener(this);
 
-        mPresenter.getSavedLoginData(this);
+        mPresenter.getSavedLoginData();
     }
 
     @OnItemSelected(value = R.id.parish_spinner, callback = OnItemSelected.Callback.ITEM_SELECTED)
@@ -97,7 +97,7 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
         String parish = (String) mParishSpinner.getSelectedItem();
         int position = mParishSpinner.getSelectedItemPosition();
 
-        mPresenter.onLoginButtonClicked(this, id, password, position, parish);
+        mPresenter.onLoginButtonClicked(id, password, position, parish);
     }
 
     @Override
@@ -158,21 +158,6 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
                 Toast.makeText(getApplicationContext(), finalMessage, Toast.LENGTH_SHORT).show();
             }
         });
-    }
-
-    @Override
-    public void onLoginResult(boolean isSuccess){
-        if(isSuccess){
-            String id = mLoginEditText.getText().toString();
-            String password = mPasswordEditText.getText().toString();
-            int position = mParishSpinner.getSelectedItemPosition();
-            mPresenter.saveLoginData(this, id, password, position);
-        }
-    }
-
-    @Override
-    public String getStringFromResource(int id) {
-        return this.getResources().getString(id);
     }
 
     @Override
