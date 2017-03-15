@@ -29,4 +29,5 @@ dependencies {
     compile 'org.jsoup:jsoup:1.7.3'
     testCompile 'junit:junit:4.12'
     compile 'com.google.android.gms:play-services-appindexing:8.4.0'
+    compile 'com.jakewharton:butterknife:7.0.1'
 }
