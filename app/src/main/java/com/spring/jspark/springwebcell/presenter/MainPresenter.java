@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Spinner;
@@ -29,6 +30,8 @@ import java.util.Calendar;
  */
 
 public class MainPresenter implements MainContract.Presenter {
+    private static final String TAG = MainPresenter.class.getSimpleName();
+
     private static final int REQUEST_PERMISSION = 1;
     private static final long A_WEEK = 1000 * 60 * 60 * 24 * 7;
     private static final int REQUEST_CODE_ALARM = 1000;
@@ -58,9 +61,13 @@ public class MainPresenter implements MainContract.Presenter {
     public void setAlarm(Context context) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(System.currentTimeMillis());
+        calendar.set(Calendar.WEEK_OF_YEAR, calendar.get(Calendar.WEEK_OF_YEAR) + 1);
         calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
         calendar.set(Calendar.HOUR_OF_DAY, 8);
         calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+
+        Log.d(TAG, calendar.getTime().toString());
 
         Intent intent = new Intent(context, AlarmReceiver.class);
         intent.setAction(BROADCAST_WEBCELL_ALARM);
