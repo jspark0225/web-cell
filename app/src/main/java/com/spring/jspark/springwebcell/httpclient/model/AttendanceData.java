@@ -9,6 +9,8 @@ public class AttendanceData {
     private String absentReason;
     private boolean isWorshipAttended = false;
     private boolean isCellAttended = false;
+    private boolean isWorshipChecked = false;
+    private boolean isCellChecked = false;
     private int year;
     private int week;
 
@@ -52,6 +54,22 @@ public class AttendanceData {
 
     public boolean isAbsentReasonExists(){
         return (absentReason != null && !absentReason.isEmpty());
+    }
+
+    public boolean isWorshipChecked() {
+        return isWorshipChecked;
+    }
+
+    public void setWorshipChecked(boolean worshipChecked) {
+        isWorshipChecked = worshipChecked;
+    }
+
+    public boolean isCellChecked() {
+        return isCellChecked;
+    }
+
+    public void setCellChecked(boolean cellChecked) {
+        isCellChecked = cellChecked;
     }
 
     @Override

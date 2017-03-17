@@ -13,6 +13,7 @@ import android.util.Log;
 import android.widget.EditText;
 
 import com.spring.jspark.springwebcell.R;
+import com.spring.jspark.springwebcell.common.Common;
 import com.spring.jspark.springwebcell.utils.ResourceManager;
 import com.spring.jspark.springwebcell.utils.SharedPreferenceManager;
 import com.spring.jspark.springwebcell.contract.MainContract;
@@ -23,6 +24,7 @@ import com.spring.jspark.springwebcell.receiver.AlarmReceiver;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 
 /**
  * Created by jspark on 2017. 3. 15..
@@ -37,6 +39,12 @@ public class MainPresenter implements MainContract.Presenter {
     public static final String BROADCAST_WEBCELL_ALARM = "com.spring.jspark.springwebcell.alarm";
 
     MainContract.View mView;
+
+    boolean isPastor = false;
+    boolean isPastorButNotNow = true;
+
+    boolean isWorshipParishInfoReceived = false;
+    boolean isCellParishInfoReceived = false;
 
     public MainPresenter() {
         WebCellHttpClient.getInstance().setListener(mHttpResponse);
@@ -112,6 +120,10 @@ public class MainPresenter implements MainContract.Presenter {
             mView.showToastMessage(ResourceManager.getInstance().getString(R.string.please_select_parish));
         }
 
+        isPastor = Common.isPastor(id, parish);
+
+        isPastorButNotNow = id.equals("김지훈") ? false : true;
+
         SharedPreferenceManager.getInstance().putLoginData(id, password, selectedPosition, true);
         WebCellHttpClient.getInstance().requestLogin(id, password);
         WebCellHttpClient.getInstance().setParish(parish);
@@ -134,8 +146,24 @@ public class MainPresenter implements MainContract.Presenter {
     OnHttpResponse mHttpResponse = new OnHttpResponse() {
         @Override
         public void onLoginResult(boolean isSuccess) {
+            mView.hideLoginProgressDialog();
             if (isSuccess) {
-                WebCellHttpClient.getInstance().requestCellMemberInfo();
+                mView.showDataLoadingProgressDialog();
+                if(isPastor){
+                    if(isPastorButNotNow){
+                        mView.hideDataLoadingProgressDialog();
+                        mView.showToastMessage("지훈 목사님이 자기만 되게 해달래요");
+                    }
+                    else{
+                        isWorshipParishInfoReceived = false;
+                        isCellParishInfoReceived = false;
+
+                        WebCellHttpClient.getInstance().requestParishMemberInfo(Common.getTodaysYear(), true);
+                        WebCellHttpClient.getInstance().requestParishMemberInfo(Common.getTodaysYear(), false);
+                    }
+                }
+                else
+                    WebCellHttpClient.getInstance().requestCellMemberInfo();
             } else {
                 SharedPreferenceManager.getInstance().clearLoginData();
                 String errorMsg = ResourceManager.getInstance().getString(R.string.fail_to_login);
@@ -145,6 +173,7 @@ public class MainPresenter implements MainContract.Presenter {
 
         @Override
         public void onRequestCellMemberInfoResult(boolean isSuccess, ArrayList<CellMemberInfo> memberInfo) {
+            mView.hideDataLoadingProgressDialog();
             if(isSuccess){
                 mView.goToCellMemberActivity();
             }else{
@@ -166,6 +195,25 @@ public class MainPresenter implements MainContract.Presenter {
         @Override
         public void onSubmitWorshipAttendanceResult(boolean isSuccess) {
 
+        }
+
+        @Override
+        public void onRequestParishMemberInfoResult(boolean isSuccess, boolean isWorship, HashMap<String, ArrayList<CellMemberInfo>> parishInfo) {
+            if(isSuccess){
+                if(isWorship)
+                    isWorshipParishInfoReceived = true;
+                else
+                    isCellParishInfoReceived = true;
+
+                if(isWorshipParishInfoReceived && isCellParishInfoReceived){
+                    mView.hideDataLoadingProgressDialog();
+                    mView.goToParishMemberActivity();
+                }
+            }else{
+                mView.hideDataLoadingProgressDialog();
+                String errorMsg = ResourceManager.getInstance().getString(R.string.fail_to_get_parish_member);
+                mView.showToastMessage(errorMsg);
+            }
         }
     };
 }

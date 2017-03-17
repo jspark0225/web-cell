@@ -7,9 +7,11 @@ import com.spring.jspark.springwebcell.httpclient.model.CellMemberInfo;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -24,7 +26,7 @@ public class WebCellHttpClient {
     private static final int REQUEST_CODE_GET_CELL_ATTENDANCE = 3;
     private static final int REQUEST_CODE_SUBMIT_WORSHIP_ATTENDANCE = 4;
     private static final int REQUEST_CODE_REQUEST_CELL_MEMBER_INFO = 5;
-    private static final int REQUEST_CODE_REQUEST_LEADER_NAME = 6;
+    private static final int REQUEST_CODE_REQUEST_PARISH_MEMBER_INFO = 6;
 
     private String mCookie = "";
     private OnHttpResponse mListener = null;
@@ -34,8 +36,9 @@ public class WebCellHttpClient {
     private String mParish = "";
     private boolean isLoggedIn = false;
 
-    // <LeaderName, CellMemberInfoList>
     private ArrayList<CellMemberInfo> mCellMemberInfos = new ArrayList<>();
+
+    private HashMap<String, ArrayList<CellMemberInfo>> mParishMemberInfo = new HashMap<>();
 
     private WebCellHttpClient(){
 
@@ -53,6 +56,8 @@ public class WebCellHttpClient {
         return mCellMemberInfos;
     }
 
+    public HashMap<String, ArrayList<CellMemberInfo>> getParishMemberInfo() { return mParishMemberInfo; }
+
     public void setListener(OnHttpResponse listener){
         this.mListener = listener;
     }
@@ -68,6 +73,8 @@ public class WebCellHttpClient {
 
         return null;
     }
+
+    public String getParish(){ return mParish; }
 
     public void requestLogin(String id, String password){
         mUserId = id;
@@ -102,6 +109,59 @@ public class WebCellHttpClient {
         request.start();
     }
 
+    public void requestParishMemberInfo(int year, boolean isWorship){
+        final int finalYear = year;
+        final boolean finalIsWorship = isWorship;
+
+        Log.d(TAG, "requestCellMemberInfo");
+        if(!isLoggedIn){
+            Log.e(TAG, "NOT Logged in");
+            return;
+        }
+
+        String requestUri = "https://sinch.dimode.co.kr/webrange/cell/weeklyRangeATT.asp";
+        HttpRequest request = new HttpRequest(REQUEST_CODE_REQUEST_PARISH_MEMBER_INFO, HttpRequest.POST, requestUri, new HttpResponse() {
+            @Override
+            public void onHttpResponse(int requestCode, int statusCode, Map<String, List<String>> headers, String body) {
+                if(requestCode != REQUEST_CODE_REQUEST_PARISH_MEMBER_INFO)
+                    return;
+
+                if(statusCode != 200){
+                    synchronized (mListener) {
+                        if (mListener != null)
+                            mListener.onRequestParishMemberInfoResult(false, finalIsWorship, null);
+
+                        return;
+                    }
+                }
+
+                long middle = System.currentTimeMillis();
+                mParishMemberInfo = parseParishMemberInfo(finalIsWorship, finalYear, body);
+                long end = System.currentTimeMillis();
+
+                synchronized (mListener) {
+                    if (mListener != null)
+                        mListener.onRequestParishMemberInfoResult(true, finalIsWorship, mParishMemberInfo);
+                }
+            }
+        });
+
+        request.addHeader("Content-Type", "application/x-www-form-urlencoded");
+        request.addHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
+        request.addHeader("Cookie", mCookie);
+
+        request.addParameter("range", "청년사역");
+        request.addParameter("range1", mParish);
+        request.addParameter("range2", "");
+
+        request.addParameter("staticYear", "" + year);
+        request.addParameter("startMonth", "01");
+        request.addParameter("endMonth", "12");
+        request.addParameter("dsView", isWorship?"1": "2");
+
+        request.start();
+    }
+
     public void requestCellMemberInfo(){
         Log.d(TAG, "requestCellMemberInfo");
         if(!isLoggedIn){
@@ -126,6 +186,8 @@ public class WebCellHttpClient {
                 }
 
                 mCellMemberInfos = parseCellMemberInfo(body);
+
+                long end = System.currentTimeMillis();
 
                 synchronized (mListener) {
                     if (mListener != null)
@@ -411,14 +473,69 @@ public class WebCellHttpClient {
             CellMemberInfo memberInfo = new CellMemberInfo();
             memberInfo.setName(name);
             memberInfo.setId(id);
-            memberInfo.setRegisteredDate(registerDate);
-            memberInfo.setBirthday(birthday);
             memberInfo.setPhoneNumber(phoneNumber);
-            memberInfo.setAddress(address);
 
             cellMemberInfos.add(memberInfo);
         }
 
         return cellMemberInfos;
+    }
+
+    private HashMap<String, ArrayList<CellMemberInfo>> parseParishMemberInfo(boolean isWorship, int year, String body){
+        Log.d(TAG, "parseParishMemberInfo isWorship = " + isWorship);
+        Document doc = Jsoup.parse(body);
+        Elements elements = doc.select("table tr td[title]");
+
+
+        HashMap<String, ArrayList<CellMemberInfo>> parishMemberInfo = mParishMemberInfo;
+
+        for(Element e : elements){
+            String leaderName = e.attr("title").replace(mParish, "").replace("/", "");
+
+            ArrayList<CellMemberInfo> cellMemberInfoList = null;
+            if(!parishMemberInfo.containsKey(leaderName)){
+                cellMemberInfoList = new ArrayList<CellMemberInfo>();
+                parishMemberInfo.put(leaderName, cellMemberInfoList);
+            }else
+                cellMemberInfoList = parishMemberInfo.get(leaderName);
+
+            CellMemberInfo cellMemberInfo = null;
+            for(CellMemberInfo info : cellMemberInfoList){
+                if(info.getName().equals(e.text())){
+                    Log.d(TAG, "jsparkk e.text() = " + e.text());
+                    cellMemberInfo = info;
+                    break;
+                }
+            }
+
+            if(cellMemberInfo == null){
+                cellMemberInfo = new CellMemberInfo();
+                cellMemberInfo.setName(e.text());
+                parishMemberInfo.get(leaderName).add(cellMemberInfo);
+            }
+
+            Element traverse = e.nextElementSibling();
+
+            int week = 1;
+            while(traverse != null && !traverse.hasAttr("title")){
+                AttendanceData data = cellMemberInfo.getAttendanceData(year, week);
+                boolean isAttended = traverse.text().equals("O") ? true : false;
+                boolean isChecked = traverse.text().equals("") ? false : true;
+
+                if(isWorship){
+                    data.setWorshipAttended(isAttended);
+                    data.setWorshipChecked(isChecked);
+                }
+                else{
+                    data.setCellAttended(isAttended);
+                    data.setCellChecked(isChecked);
+                }
+
+                traverse = traverse.nextElementSibling();
+                week++;
+            }
+        }
+
+        return parishMemberInfo;
     }
 }

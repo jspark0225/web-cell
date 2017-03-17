@@ -15,6 +15,10 @@ public interface MainContract {
         void updateParishSpinner(int position);
         void showToastMessage(String message);
         void goToCellMemberActivity();
+        void goToParishMemberActivity();
+        void showDataLoadingProgressDialog();
+        void hideDataLoadingProgressDialog();
+        void hideLoginProgressDialog();
     }
 
     interface Presenter{

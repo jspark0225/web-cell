@@ -1,7 +1,7 @@
 package com.spring.jspark.springwebcell.activity;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -36,13 +36,13 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
     @Bind(R.id.password)
     EditText mPasswordEditText;
 
+    ProgressDialog mDataLoadingProgressDialog;
+    ProgressDialog mLoginProgressDialog;
+
     MainPresenter mPresenter;
 
     ArrayAdapter<String> closedAdapter;
     ArrayAdapter<String> openedAdapter;
-
-    SharedPreferences pref;
-    SharedPreferences.Editor editor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +66,12 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
 
         mParishSpinner.setAdapter(closedAdapter);
         mParishSpinner.setSpinnerEventsListener(this);
+
+        mDataLoadingProgressDialog = new ProgressDialog(this);
+        mDataLoadingProgressDialog.setMessage("데이터를 가져오는 중입니다");
+
+        mLoginProgressDialog = new ProgressDialog(this);
+        mLoginProgressDialog .setMessage("로그인 중입니다");
 
         mPresenter.getSavedLoginData();
     }
@@ -92,6 +98,8 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
 
     @OnClick(R.id.login_btn)
     public void onLoginClicked(){
+        mLoginProgressDialog.show();
+
         String id = mLoginEditText.getText().toString();
         String password = mPasswordEditText.getText().toString();
         String parish = (String) mParishSpinner.getSelectedItem();
@@ -164,6 +172,49 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
     public void goToCellMemberActivity() {
         Intent intent = new Intent(MainActivity.this, CellMemberListActivity.class);
         startActivityForResult(intent, REQUEST_CODE_TERMINATE);
+    }
+
+    @Override
+    public void goToParishMemberActivity() {
+        Intent intent = new Intent(MainActivity.this, ParishMemberListActivity.class);
+        startActivityForResult(intent, REQUEST_CODE_TERMINATE);
+    }
+
+    @Override
+    public void showDataLoadingProgressDialog() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if(mDataLoadingProgressDialog != null && !mDataLoadingProgressDialog.isShowing()){
+                    mDataLoadingProgressDialog.show();
+                }
+            }
+        });
+    }
+
+    @Override
+    public void hideDataLoadingProgressDialog() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if(mDataLoadingProgressDialog != null && mDataLoadingProgressDialog.isShowing()){
+                    mDataLoadingProgressDialog.hide();
+                }
+            }
+        });
+
+    }
+
+    @Override
+    public void hideLoginProgressDialog(){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if(mLoginProgressDialog != null && mLoginProgressDialog.isShowing()){
+                    mLoginProgressDialog.hide();
+                }
+            }
+        });
     }
 
     @Override

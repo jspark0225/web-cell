@@ -17,6 +17,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
+        android:theme="@style/RedCheck"
         android:gravity="center"/>
 
     <CheckBox
@@ -24,6 +25,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
+        android:theme="@style/RedCheck"
         android:gravity="center" />
 
 
@@ -56,6 +58,8 @@
             android:layout_marginLeft="10dp"
             android:paddingLeft="5dp"
             android:textSize="12sp"
+            android:hint="@string/please_type_opinion"
+            android:textColorHint="#BDBDBD"
             />
     </LinearLayout>
 </LinearLayout>

@@ -1,7 +1,5 @@
 package com.spring.jspark.springwebcell.presenter;
 
-import android.widget.Toast;
-
 import com.spring.jspark.springwebcell.R;
 import com.spring.jspark.springwebcell.common.Common;
 import com.spring.jspark.springwebcell.contract.CellMemberListContract;
@@ -12,6 +10,7 @@ import com.spring.jspark.springwebcell.httpclient.model.CellMemberInfo;
 import com.spring.jspark.springwebcell.utils.ResourceManager;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Created by jspark on 2017. 3. 15..
@@ -88,28 +87,43 @@ public class CellMemberListPresenter implements CellMemberListContract.Presenter
             if (isSuccess) {
                 mView.updateMemberList(year, week, memberInfo);
             }
+
+            mView.hideRefreshProgressDialog();
         }
 
         @Override
         public void onSubmitCellAttendanceResult(boolean isSuccess) {
             if(isSuccess)
                 isCellAttendanceReceived = true;
-            else
+            else {
+                mView.hideSubmitProgressDialog();
                 mView.showToast(ResourceManager.getInstance().getString(R.string.webcell_submit_failure));
+            }
 
-            if(isCellAttendanceReceived && isWorshipAttendanceReceived)
+            if(isCellAttendanceReceived && isWorshipAttendanceReceived){
+                mView.hideSubmitProgressDialog();
                 mView.showToast(ResourceManager.getInstance().getString(R.string.webcell_submit_success));
+            }
         }
 
         @Override
         public void onSubmitWorshipAttendanceResult(boolean isSuccess) {
             if(isSuccess)
                 isWorshipAttendanceReceived = true;
-            else
+            else {
+                mView.hideSubmitProgressDialog();
                 mView.showToast(ResourceManager.getInstance().getString(R.string.webcell_submit_failure));
+            }
 
-            if(isCellAttendanceReceived && isWorshipAttendanceReceived)
+            if(isCellAttendanceReceived && isWorshipAttendanceReceived) {
+                mView.hideSubmitProgressDialog();
                 mView.showToast(ResourceManager.getInstance().getString(R.string.webcell_submit_success));
+            }
+        }
+
+        @Override
+        public void onRequestParishMemberInfoResult(boolean isSuccess, boolean isWorship, HashMap<String, ArrayList<CellMemberInfo>> parishInfo) {
+
         }
     };
 }

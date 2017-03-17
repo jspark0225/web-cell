@@ -1,5 +1,6 @@
 package com.spring.jspark.springwebcell.activity;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -55,12 +56,21 @@ public class CellMemberListActivity extends AppCompatActivity implements CellMem
 
     CellMemberListPresenter mPresenter = new CellMemberListPresenter();
 
+    ProgressDialog mRefreshProgressDialog;
+    ProgressDialog mSubmitProgressDialog;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cell_member_list);
         ButterKnife.bind(this);
         mPresenter.setView(this);
+
+        mRefreshProgressDialog = new ProgressDialog(this);
+        mRefreshProgressDialog.setMessage("데이터를 가져오는 중입니다");
+
+        mSubmitProgressDialog = new ProgressDialog(this);
+        mSubmitProgressDialog.setMessage("데이터를 전송하는 중입니다");
 
         weekOfYear = Common.getTodaysWeekOfYear();
         year = Common.getTodaysYear();
@@ -90,6 +100,9 @@ public class CellMemberListActivity extends AppCompatActivity implements CellMem
 
     @OnClick(R.id.submit)
     public void onSubmitButtonClicked(){
+        if(mSubmitProgressDialog != null && !mSubmitProgressDialog.isShowing())
+            mSubmitProgressDialog.show();
+
         for(int i = 0; i< mAdapter.getCount(); i++) {
             View childView = mAdapter.getViewByPosition(i);
             if (childView == null)
@@ -144,9 +157,11 @@ public class CellMemberListActivity extends AppCompatActivity implements CellMem
 
             setDateText(year, selectedMonth + 1, selectedDate);
 
+            if(mRefreshProgressDialog != null && !mRefreshProgressDialog.isShowing())
+                mRefreshProgressDialog.show();
+
             mAdapter.setDate(year, weekOfYear);
             mPresenter.requestCellMemberAttendanceData(year, weekOfYear);
-
         }
     };
 
@@ -177,6 +192,28 @@ public class CellMemberListActivity extends AppCompatActivity implements CellMem
             @Override
             public void run() {
                 Toast.makeText(getApplicationContext(), finalMessage, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    @Override
+    public void hideRefreshProgressDialog() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if(mRefreshProgressDialog != null && mRefreshProgressDialog.isShowing())
+                    mRefreshProgressDialog.hide();
+            }
+        });
+    }
+
+    @Override
+    public void hideSubmitProgressDialog() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if(mSubmitProgressDialog != null && mSubmitProgressDialog.isShowing())
+                    mSubmitProgressDialog.hide();
             }
         });
     }

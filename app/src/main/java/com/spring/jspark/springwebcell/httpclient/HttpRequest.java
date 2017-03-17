@@ -82,8 +82,8 @@ public class HttpRequest extends  Thread{
             connection.setInstanceFollowRedirects(false);
             connection.setUseCaches(false);
             connection.setRequestMethod(method);
-            connection.setConnectTimeout(5000);
-            connection.setReadTimeout(5000);
+            connection.setConnectTimeout(10000);
+            connection.setReadTimeout(10000);
 
             for(String key : headers.keySet()){
                 String header = headers.get(key);

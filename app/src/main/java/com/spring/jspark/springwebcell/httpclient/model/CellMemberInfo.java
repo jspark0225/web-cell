@@ -10,9 +10,6 @@ public class CellMemberInfo{
     private String name;
     private String id;
     private String phoneNumber;
-    private String registeredDate;
-    private String birthday;
-    private String address;
 
     // key = year/week
     private HashMap<String, AttendanceData> attendanceData = new HashMap<>();
@@ -39,30 +36,6 @@ public class CellMemberInfo{
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
-    }
-
-    public String getRegisteredDate() {
-        return registeredDate;
-    }
-
-    public void setRegisteredDate(String registeredDate) {
-        this.registeredDate = registeredDate;
-    }
-
-    public String getBirthday() {
-        return birthday;
-    }
-
-    public void setBirthday(String birthday) {
-        this.birthday = birthday;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
     }
 
     public AttendanceData getAttendanceData(int year, int week) {

@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/activity_cell_member_list"
+    android:id="@+id/activity_parish_member_list"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingBottom="@dimen/activity_vertical_margin"
@@ -10,11 +9,9 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:orientation="vertical"
-    tools:context="com.spring.jspark.springwebcell.activity.CellMemberListActivity">
-
-
+    tools:context="com.spring.jspark.springwebcell.activity.ParishMemberListActivity">
     <LinearLayout
-        android:id="@+id/cell_member_date"
+        android:id="@+id/parish_member_date"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
@@ -22,7 +19,7 @@
         >
 
         <TextView
-            android:id="@+id/dateText"
+            android:id="@+id/parish_date_text"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical|center_horizontal"
@@ -34,7 +31,7 @@
             android:textSize="17sp" />
 
         <ImageButton
-            android:id="@+id/calBtn"
+            android:id="@+id/parish_calendar_btn"
             android:layout_width="30dp"
             android:layout_height="32dp"
             android:layout_gravity="center_vertical|center_horizontal"
@@ -45,81 +42,47 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/title_prompt"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.5"
+        android:layout_weight="1"
         android:orientation="horizontal"
-        android:background="@drawable/under_line_border"
         >
-
         <TextView
+            android:id="@+id/parish_member_list_overall_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="예배"
-            android:textSize="15sp" />
+            android:layout_weight="3.5"
+            android:gravity="left|center_vertical"
+            android:paddingLeft="10dp"
+            android:textColor="#000000"
+            android:textSize="17sp"
+            android:paddingTop="15dp"
+            android:paddingBottom="15dp"
+            />
 
         <TextView
+            android:id="@+id/parish_member_list_overall_content"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="셀"
-            android:textSize="15sp" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="2"
-            android:gravity="center"
-            android:text="이름"
-            android:textSize="15sp" />
-
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="6"
-            android:gravity="center"
-            android:text="특이사항"
-            android:textSize="15sp" />
+            android:layout_weight="7.5"
+            android:gravity="left|center_vertical"
+            android:textColor="#8C8C8C"
+            android:textSize="13sp"
+            android:paddingTop="15dp"
+            android:paddingBottom="15dp"
+            />
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="7.5"
+        android:layout_weight="8"
         android:orientation="vertical"
         >
         <ListView
-            android:layout_below="@+id/title"
-            android:id="@+id/cell_member_list"
+            android:id="@+id/parish_member_list"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
         </ListView>
     </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:paddingLeft="20dp"
-        android:paddingRight="20dp"
-        android:paddingTop="10dp"
-
-        android:layout_weight="1">
-        <Button
-            android:layout_alignParentBottom="true"
-            android:id="@+id/submit"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginBottom="2dp"
-            android:text="제출하기"
-            android:textColor="#FFFFFF"
-            android:textSize="15sp"
-            android:background="@drawable/rounded_edit_submit_btn"
-            />
-    </LinearLayout>
-
 </LinearLayout>

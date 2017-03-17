@@ -17,5 +17,9 @@
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
+    <style name="RedCheck">
+        <item name="colorAccent">#B02D33</item>
+    </style>
+
 
 </resources>

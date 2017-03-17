@@ -12,6 +12,8 @@ public interface CellMemberListContract {
     interface View{
         void updateMemberList(int year, int week, ArrayList<CellMemberInfo> memberList);
         void showToast(String message);
+        void hideSubmitProgressDialog();
+        void hideRefreshProgressDialog();
     }
 
     interface Presenter{
