@@ -16,6 +16,7 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:orientation="horizontal"
+        android:background="@drawable/under_line_border"
         >
 
         <TextView
@@ -46,6 +47,7 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:orientation="horizontal"
+        android:background="@drawable/under_line_border"
         >
         <TextView
             android:id="@+id/parish_member_list_overall_title"

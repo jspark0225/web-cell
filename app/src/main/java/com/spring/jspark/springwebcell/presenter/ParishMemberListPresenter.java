@@ -4,7 +4,9 @@ import com.spring.jspark.springwebcell.common.Common;
 import com.spring.jspark.springwebcell.contract.ParishMemberListContract;
 import com.spring.jspark.springwebcell.httpclient.OnHttpResponse;
 import com.spring.jspark.springwebcell.httpclient.WebCellHttpClient;
-import com.spring.jspark.springwebcell.httpclient.model.CellMemberInfo;
+import com.spring.jspark.springwebcell.httpclient.model.Cell;
+import com.spring.jspark.springwebcell.httpclient.model.CellMember;
+import com.spring.jspark.springwebcell.httpclient.model.Parish;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,76 +33,51 @@ public class ParishMemberListPresenter implements ParishMemberListContract.Prese
     @Override
     public void requestParishMembers() {
         mView.hideRefreshDialogProgress();
-        mView.updateParishMembers(WebCellHttpClient.getInstance().getParishMemberInfo());
+        mView.updateParishMembers(WebCellHttpClient.getInstance().getParish());
     }
 
     @Override
-    public HashMap<String, ArrayList<CellMemberInfo>> getParishMember() {
-        return WebCellHttpClient.getInstance().getParishMemberInfo();
-    }
-
-    @Override
-    public int getTotalWorshipAttendance(int year, int week) {
-        int nWorshipAttendance = 0;
-        for(String key : getParishMember().keySet()){
-            nWorshipAttendance += Common.getNumberOfWorshipAttendance(year, week, getParishMember().get(key));
-        }
-
-        return nWorshipAttendance;
-    }
-
-    @Override
-    public int getTotalCellAttendance(int year, int week) {
-        int nCellAttendance = 0;
-        for(String key : getParishMember().keySet()){
-            nCellAttendance += Common.getNumberOfCellAttendance(year, week, getParishMember().get(key));
-        }
-
-        return nCellAttendance;
-    }
-
-    @Override
-    public int getTotalWorshipAbsence(int year, int week) {
-        int nWorshipAbsence = 0;
-        for(String key : getParishMember().keySet()){
-            nWorshipAbsence += Common.getNumberOfWorshipAbsence(year, week, getParishMember().get(key));
-        }
-
-        return nWorshipAbsence;
-    }
-
-    @Override
-    public int getTotalCellAbsence(int year, int week) {
-        int nCellAbsence = 0;
-        for(String key : getParishMember().keySet()){
-            nCellAbsence += Common.getNumberOfCellAbsence(year, week, getParishMember().get(key));
-        }
-
-        return nCellAbsence;
-    }
-
-    @Override
-    public String getParish() {
+    public Parish getParishMember() {
         return WebCellHttpClient.getInstance().getParish();
     }
 
     @Override
-    public int getTotal() {
-        int total = 0;
-
-        HashMap<String, ArrayList<CellMemberInfo>> parishMember = getParishMember();
-
-        for(String key : parishMember.keySet()){
-            total += parishMember.get(key).size();
-        }
-
-        return total;
+    public int getParishWorshipAttendance(int year, int week) {
+        return getParishMember().getNumberOfWorshipAttended(year, week);
     }
+
+    @Override
+    public int getParishCellAttendance(int year, int week) {
+        return getParishMember().getNumberOfCellAttended(year, week);
+    }
+
+    @Override
+    public String getParish() {
+        return WebCellHttpClient.getInstance().getParishName();
+    }
+
+    @Override
+    public int getTotal() {
+        return getParishMember().getNumberOfMembers();
+    }
+
+    @Override
+    public int getTotal(int year, int week){ return getParishMember().getTotalNumberOfParish(year, week);}
 
     @Override
     public void requestParishMemberList(int year){
         WebCellHttpClient.getInstance().requestParishMemberInfo(year, true);
         WebCellHttpClient.getInstance().requestParishMemberInfo(year, false);
+    }
+
+    @Override
+    public void requestCellMemberList(String leaderName, int year, int week) {
+        WebCellHttpClient.getInstance().requestCellMemberInfo(leaderName);
+    }
+
+    @Override
+    public void setListener() {
+        WebCellHttpClient.getInstance().setListener(mHttpResponse);
     }
 
     private OnHttpResponse mHttpResponse = new OnHttpResponse() {
@@ -110,16 +87,19 @@ public class ParishMemberListPresenter implements ParishMemberListContract.Prese
         }
 
         @Override
-        public void onRequestCellMemberInfoResult(boolean isSuccess, ArrayList<CellMemberInfo> memberInfo) {
-
+        public void onRequestCellMemberInfoResult(boolean isSuccess, Cell memberInfo) {
+            mView.hideRefreshDialogProgress();
+            if(isSuccess){
+                mView.goToCellMemberListActivity(memberInfo.getLeaderName());
+            }
         }
 
         @Override
-        public void onRequestCellMemberAttendanceResult(boolean isSuccess, int year, int week, ArrayList<CellMemberInfo> memberInfo) {
+        public void onRequestCellMemberAttendanceResult(boolean isSuccess, int year, int week, Cell memberInfo) {
         }
 
         @Override
-        public void onRequestParishMemberInfoResult(boolean isSuccess, boolean isWorship, HashMap<String, ArrayList<CellMemberInfo>> parishInfo) {
+        public void onRequestParishMemberInfoResult(boolean isSuccess, boolean isWorship, Parish parishInfo) {
             if(isSuccess) {
                 if(isWorship)
                     isWorshipInfoReceived = true;

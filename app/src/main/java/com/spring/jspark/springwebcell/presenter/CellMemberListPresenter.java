@@ -5,8 +5,10 @@ import com.spring.jspark.springwebcell.common.Common;
 import com.spring.jspark.springwebcell.contract.CellMemberListContract;
 import com.spring.jspark.springwebcell.httpclient.OnHttpResponse;
 import com.spring.jspark.springwebcell.httpclient.WebCellHttpClient;
-import com.spring.jspark.springwebcell.httpclient.model.AttendanceData;
-import com.spring.jspark.springwebcell.httpclient.model.CellMemberInfo;
+import com.spring.jspark.springwebcell.httpclient.model.Attendance;
+import com.spring.jspark.springwebcell.httpclient.model.Cell;
+import com.spring.jspark.springwebcell.httpclient.model.CellMember;
+import com.spring.jspark.springwebcell.httpclient.model.Parish;
 import com.spring.jspark.springwebcell.utils.ResourceManager;
 
 import java.util.ArrayList;
@@ -19,13 +21,13 @@ import java.util.HashMap;
 public class CellMemberListPresenter implements CellMemberListContract.Presenter {
     CellMemberListContract.View mView;
 
-    ArrayList<CellMemberInfo> mCellMemberList = null;
+    Cell mCellMemberList = null;
 
     boolean isWorshipAttendanceReceived = false;
     boolean isCellAttendanceReceived = false;
 
-    public CellMemberListPresenter(){
-        mCellMemberList = WebCellHttpClient.getInstance().getCellMemberInfo();
+    public CellMemberListPresenter(String leaderName){
+        mCellMemberList = WebCellHttpClient.getInstance().getCell(leaderName);
         WebCellHttpClient.getInstance().setListener(mHttpResonse);
     }
 
@@ -35,29 +37,22 @@ public class CellMemberListPresenter implements CellMemberListContract.Presenter
     }
 
     @Override
-    public ArrayList<CellMemberInfo> getCellMemberData() {
+    public Cell getCellMemberData() {
         return mCellMemberList;
     }
 
     @Override
-    public void requestCellMemberAttendanceData(int year, int week) {
-        WebCellHttpClient.getInstance().getCellMemberAttendance(year, week);
+    public void requestCellMemberAttendanceData(String leaderName, int year, int week) {
+        WebCellHttpClient.getInstance().getCellMemberAttendance(leaderName, year, week);
     }
 
     @Override
     public void setAttendanceData(int index, int year, int week, boolean isWorshipAttended, boolean isCellAttended, String reason1, String reason2) {
-        if(index >= mCellMemberList.size() || index < 0)
-            return;
-
         String reason = "";
         if (!reason1.isEmpty() || !reason2.isEmpty())
             reason = reason1 + Common.REASON_DELIMETER + reason2;
 
-        AttendanceData data = mCellMemberList.get(index).getAttendanceData(year, week);
-        data.setWorshipAttended(isWorshipAttended);
-        data.setCellAttended(isCellAttended);
-        data.setAbsentReason(reason);
-
+        mCellMemberList.setAttendanceData(index, year, week, isWorshipAttended, isCellAttended, reason);
 
     }
 
@@ -75,17 +70,17 @@ public class CellMemberListPresenter implements CellMemberListContract.Presenter
         }
 
         @Override
-        public void onRequestCellMemberInfoResult(boolean isSuccess, ArrayList<CellMemberInfo> memberInfo) {
+        public void onRequestCellMemberInfoResult(boolean isSuccess, Cell cell) {
 
         }
 
         @Override
-        public void onRequestCellMemberAttendanceResult(boolean isSuccess, int year, int week, ArrayList<CellMemberInfo> memberInfo) {
+        public void onRequestCellMemberAttendanceResult(boolean isSuccess, int year, int week, Cell cell) {
 
-            // final ArrayList<CellMemberInfo> mem = memberInfo;
-            mCellMemberList = memberInfo;
+            // final ArrayList<CellMember> mem = memberInfo;
+            mCellMemberList = cell;
             if (isSuccess) {
-                mView.updateMemberList(year, week, memberInfo);
+                mView.updateMemberList(year, week, mCellMemberList);
             }
 
             mView.hideRefreshProgressDialog();
@@ -122,7 +117,7 @@ public class CellMemberListPresenter implements CellMemberListContract.Presenter
         }
 
         @Override
-        public void onRequestParishMemberInfoResult(boolean isSuccess, boolean isWorship, HashMap<String, ArrayList<CellMemberInfo>> parishInfo) {
+        public void onRequestParishMemberInfoResult(boolean isSuccess, boolean isWorship, Parish parish) {
 
         }
     };

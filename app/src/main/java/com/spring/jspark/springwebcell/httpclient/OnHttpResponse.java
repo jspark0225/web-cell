@@ -1,6 +1,8 @@
 package com.spring.jspark.springwebcell.httpclient;
 
-import com.spring.jspark.springwebcell.httpclient.model.CellMemberInfo;
+import com.spring.jspark.springwebcell.httpclient.model.Cell;
+import com.spring.jspark.springwebcell.httpclient.model.CellMember;
+import com.spring.jspark.springwebcell.httpclient.model.Parish;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,9 +13,9 @@ import java.util.HashMap;
 
 public interface OnHttpResponse {
     public void onLoginResult(boolean isSuccess);
-    public void onRequestCellMemberInfoResult(boolean isSuccess, ArrayList<CellMemberInfo> memberInfo);
-    public void onRequestCellMemberAttendanceResult(boolean isSuccess, int year, int week, ArrayList<CellMemberInfo> memberInfo);
-    public void onRequestParishMemberInfoResult(boolean isSuccess, boolean isWorship, HashMap<String, ArrayList<CellMemberInfo>> parishInfo);
+    public void onRequestCellMemberInfoResult(boolean isSuccess, Cell cell);
+    public void onRequestCellMemberAttendanceResult(boolean isSuccess, int year, int week, Cell cell);
+    public void onRequestParishMemberInfoResult(boolean isSuccess, boolean isWorship, Parish parish);
     public void onSubmitCellAttendanceResult(boolean isSuccess);
     public void onSubmitWorshipAttendanceResult(boolean isSuccess);
 }

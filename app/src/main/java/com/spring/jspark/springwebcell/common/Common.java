@@ -1,7 +1,7 @@
 package com.spring.jspark.springwebcell.common;
 
-import com.spring.jspark.springwebcell.httpclient.model.AttendanceData;
-import com.spring.jspark.springwebcell.httpclient.model.CellMemberInfo;
+import com.spring.jspark.springwebcell.httpclient.model.Attendance;
+import com.spring.jspark.springwebcell.httpclient.model.CellMember;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -23,8 +23,24 @@ public class Common {
         return Calendar.getInstance().get(Calendar.YEAR);
     }
     public static int getTodaysMonth() { return Calendar.getInstance().get(Calendar.MONTH); }
+    public static int getMonth(int year, int week){
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.YEAR, year);;
+        cal.set(Calendar.WEEK_OF_YEAR, week);
+
+        return cal.get(Calendar.MONTH);
+    }
+
     public static int getDeafaultDate(){
         return Calendar.getInstance().get(Calendar.DAY_OF_MONTH) - Calendar.getInstance().get(Calendar.DAY_OF_WEEK) + 1;
+    }
+
+    public static int getDefaultDate(int year, int week){
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.YEAR, year);;
+        cal.set(Calendar.WEEK_OF_YEAR, week);
+
+        return cal.get(Calendar.DAY_OF_MONTH) - cal.get(Calendar.DAY_OF_WEEK) + 1;
     }
 
     public static boolean isPastor(String name, String parish){
@@ -44,52 +60,5 @@ public class Common {
             return true;
         else
             return false;
-    }
-
-    public static int getNumberOfCellAttendance(int year, int week, ArrayList<CellMemberInfo> cell){
-        int cellAttendanceMember = 0;
-
-        for(CellMemberInfo c : cell){
-            if(c.getAttendanceData(year, week).isCellAttended())
-                cellAttendanceMember++;
-        }
-
-        return cellAttendanceMember;
-    }
-
-    public static int getNumberOfWorshipAttendance(int year, int week, ArrayList<CellMemberInfo> cell){
-        int worshipAttendanceMember = 0;
-
-        for(CellMemberInfo c : cell){
-            if(c.getAttendanceData(year, week).isWorshipAttended())
-                worshipAttendanceMember++;
-        }
-
-        return worshipAttendanceMember;
-
-    }
-
-    public static int getNumberOfWorshipAbsence(int year, int week, ArrayList<CellMemberInfo> cell){
-        int worshipAbsenceMember = 0;
-
-        for(CellMemberInfo c : cell){
-            AttendanceData attendanceData = c.getAttendanceData(year, week);
-            if(!attendanceData.isWorshipAttended() && attendanceData.isWorshipChecked())
-                worshipAbsenceMember++;
-        }
-
-        return worshipAbsenceMember;
-    }
-
-    public static int getNumberOfCellAbsence(int year, int week, ArrayList<CellMemberInfo> cell){
-        int cellAbsenceMember = 0;
-
-        for(CellMemberInfo c : cell){
-            AttendanceData attendanceData = c.getAttendanceData(year, week);
-            if(!attendanceData.isCellAttended() && attendanceData.isCellChecked())
-                cellAbsenceMember++;
-        }
-
-        return cellAbsenceMember;
     }
 }

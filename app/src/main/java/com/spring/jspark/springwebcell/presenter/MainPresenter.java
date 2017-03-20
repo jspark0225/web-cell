@@ -14,12 +14,14 @@ import android.widget.EditText;
 
 import com.spring.jspark.springwebcell.R;
 import com.spring.jspark.springwebcell.common.Common;
+import com.spring.jspark.springwebcell.httpclient.model.Cell;
+import com.spring.jspark.springwebcell.httpclient.model.CellMember;
+import com.spring.jspark.springwebcell.httpclient.model.Parish;
 import com.spring.jspark.springwebcell.utils.ResourceManager;
 import com.spring.jspark.springwebcell.utils.SharedPreferenceManager;
 import com.spring.jspark.springwebcell.contract.MainContract;
 import com.spring.jspark.springwebcell.httpclient.OnHttpResponse;
 import com.spring.jspark.springwebcell.httpclient.WebCellHttpClient;
-import com.spring.jspark.springwebcell.httpclient.model.CellMemberInfo;
 import com.spring.jspark.springwebcell.receiver.AlarmReceiver;
 
 import java.util.ArrayList;
@@ -125,8 +127,7 @@ public class MainPresenter implements MainContract.Presenter {
         isPastorButNotNow = id.equals("김지훈") ? false : true;
 
         SharedPreferenceManager.getInstance().putLoginData(id, password, selectedPosition, true);
-        WebCellHttpClient.getInstance().requestLogin(id, password);
-        WebCellHttpClient.getInstance().setParish(parish);
+        WebCellHttpClient.getInstance().requestLogin(id, password, parish);
     }
 
     @Override
@@ -172,7 +173,7 @@ public class MainPresenter implements MainContract.Presenter {
         }
 
         @Override
-        public void onRequestCellMemberInfoResult(boolean isSuccess, ArrayList<CellMemberInfo> memberInfo) {
+        public void onRequestCellMemberInfoResult(boolean isSuccess, Cell cell) {
             mView.hideDataLoadingProgressDialog();
             if(isSuccess){
                 mView.goToCellMemberActivity();
@@ -183,7 +184,7 @@ public class MainPresenter implements MainContract.Presenter {
         }
 
         @Override
-        public void onRequestCellMemberAttendanceResult(boolean isSuccess, int year, int week, ArrayList<CellMemberInfo> memberInfo) {
+        public void onRequestCellMemberAttendanceResult(boolean isSuccess, int year, int week, Cell cell) {
 
         }
 
@@ -198,7 +199,7 @@ public class MainPresenter implements MainContract.Presenter {
         }
 
         @Override
-        public void onRequestParishMemberInfoResult(boolean isSuccess, boolean isWorship, HashMap<String, ArrayList<CellMemberInfo>> parishInfo) {
+        public void onRequestParishMemberInfoResult(boolean isSuccess, boolean isWorship, Parish parish) {
             if(isSuccess){
                 if(isWorship)
                     isWorshipParishInfoReceived = true;

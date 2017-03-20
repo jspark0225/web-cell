@@ -4,7 +4,7 @@ package com.spring.jspark.springwebcell.httpclient.model;
  * Created by jspark on 2017. 3. 9..
  */
 
-public class AttendanceData {
+public class Attendance {
     private int index;
     private String absentReason;
     private boolean isWorshipAttended = false;
@@ -14,7 +14,7 @@ public class AttendanceData {
     private int year;
     private int week;
 
-    public AttendanceData(int year, int week){
+    public Attendance(int year, int week){
         this.year = year;
         this.week = week;
         absentReason = "";
@@ -74,7 +74,7 @@ public class AttendanceData {
 
     @Override
     public String toString() {
-        return "AttendanceData{" +
+        return "Attendance{" +
                 "index=" + index +
                 ", absentReason='" + absentReason + '\'' +
                 ", isWorshipAttended=" + isWorshipAttended +

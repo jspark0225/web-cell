@@ -6,13 +6,13 @@ import java.util.HashMap;
  * Created by jspark on 2017. 3. 6..
  */
 
-public class CellMemberInfo{
+public class CellMember {
     private String name;
     private String id;
     private String phoneNumber;
 
     // key = year/week
-    private HashMap<String, AttendanceData> attendanceData = new HashMap<>();
+    private HashMap<String, Attendance> attendanceData = new HashMap<>();
 
     public String getName() {
         return name;
@@ -38,11 +38,11 @@ public class CellMemberInfo{
         this.phoneNumber = phoneNumber;
     }
 
-    public AttendanceData getAttendanceData(int year, int week) {
+    public Attendance getAttendanceData(int year, int week) {
         String key = year + "/" + week;
 
         if(!attendanceData.containsKey(key)){
-            attendanceData.put(key, new AttendanceData(year, week));
+            attendanceData.put(key, new Attendance(year, week));
         }
 
         return attendanceData.get(key);

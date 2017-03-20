@@ -1,25 +1,24 @@
 package com.spring.jspark.springwebcell.adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
-import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.TextView;
 
 import com.spring.jspark.springwebcell.R;
+import com.spring.jspark.springwebcell.activity.CellMemberListActivity;
+import com.spring.jspark.springwebcell.activity.MainActivity;
+import com.spring.jspark.springwebcell.activity.ParishMemberListActivity;
 import com.spring.jspark.springwebcell.common.Common;
-import com.spring.jspark.springwebcell.httpclient.model.AttendanceData;
-import com.spring.jspark.springwebcell.httpclient.model.CellMemberInfo;
-import com.spring.jspark.springwebcell.view.CustomSpinner;
+import com.spring.jspark.springwebcell.httpclient.model.Cell;
+import com.spring.jspark.springwebcell.httpclient.model.CellMember;
+import com.spring.jspark.springwebcell.httpclient.model.Parish;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -34,20 +33,20 @@ public class ParishMemberListViewAdapter extends BaseAdapter{
 
     boolean[] isThereUpdatedData;
 
-    Map<Integer, View> mChildViews = new HashMap<>();
-
-    HashMap<String, ArrayList<CellMemberInfo>> mMemberList = new HashMap<>();
+    Parish mParish;
     ArrayList mEntrySet = new ArrayList();
 
-    public ParishMemberListViewAdapter(){
+    View.OnClickListener mOnClickListener;
 
+    public ParishMemberListViewAdapter(View.OnClickListener clickListener){
+            mOnClickListener = clickListener;
     }
 
-    public void setMemberListInfo(HashMap<String, ArrayList<CellMemberInfo>> memberList) {
-        mMemberList = memberList;
+    public void setMemberListInfo(Parish memberList) {
+        mParish = memberList;
 
         mEntrySet.clear();
-        mEntrySet.addAll(mMemberList.entrySet());
+        mEntrySet.addAll(mParish.getCellList().entrySet());
 
         Log.d(TAG, "EntrySet size = " + mEntrySet.size());
         isThereUpdatedData = new boolean[mEntrySet.size()];
@@ -100,15 +99,17 @@ public class ParishMemberListViewAdapter extends BaseAdapter{
             return convertView;
         }
 
+        convertView.setOnClickListener(mOnClickListener);
+
         isThereUpdatedData[position] = true;
 
         TextView title = (TextView) convertView.findViewById(R.id.parish_member_list_title);
         TextView content = (TextView) convertView.findViewById(R.id.parish_member_list_content);
 
-        Map.Entry<String, ArrayList<CellMemberInfo>> item = (Map.Entry<String, ArrayList<CellMemberInfo>>) getItem(position);
+        final Map.Entry<String, Cell> item = (Map.Entry<String, Cell>) getItem(position);
         if(item != null){
-            int nCellAttendance = Common.getNumberOfCellAttendance(year, week, item.getValue());
-            int nWorshipAttendance = Common.getNumberOfWorshipAttendance(year, week , item.getValue());
+            int nCellAttendance = item.getValue().getNumberOfCellAttendance(year, week);
+            int nWorshipAttendance = item.getValue().getNumberOfWorshipAttendance(year, week);
             int nTotal = item.getValue().size();
 
             title.setText( item.getKey() );

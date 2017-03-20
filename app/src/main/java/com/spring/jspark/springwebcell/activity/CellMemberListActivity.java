@@ -4,6 +4,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -20,15 +21,11 @@ import com.spring.jspark.springwebcell.R;
 import com.spring.jspark.springwebcell.adapter.CellMemberListViewAdapter;
 import com.spring.jspark.springwebcell.common.Common;
 import com.spring.jspark.springwebcell.contract.CellMemberListContract;
-import com.spring.jspark.springwebcell.httpclient.model.AttendanceData;
-import com.spring.jspark.springwebcell.httpclient.model.CellMemberInfo;
-import com.spring.jspark.springwebcell.httpclient.WebCellHttpClient;
-import com.spring.jspark.springwebcell.httpclient.OnHttpResponse;
+import com.spring.jspark.springwebcell.httpclient.model.Cell;
 import com.spring.jspark.springwebcell.presenter.CellMemberListPresenter;
 import com.spring.jspark.springwebcell.utils.ResourceManager;
 import com.spring.jspark.springwebcell.view.CustomSpinner;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 
 import butterknife.Bind;
@@ -54,16 +51,24 @@ public class CellMemberListActivity extends AppCompatActivity implements CellMem
 
     CellMemberListViewAdapter mAdapter;
 
-    CellMemberListPresenter mPresenter = new CellMemberListPresenter();
+    CellMemberListPresenter mPresenter;
 
     ProgressDialog mRefreshProgressDialog;
     ProgressDialog mSubmitProgressDialog;
+
+    String leaderName;
+    int from; // 0 : MainActivity, 1 : ParishMemberListViewAdapter.java
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cell_member_list);
         ButterKnife.bind(this);
+
+        leaderName = getIntent().getStringExtra("leaderName");
+        from = getIntent().getIntExtra("from", 0);
+
+        mPresenter = new CellMemberListPresenter(leaderName);
         mPresenter.setView(this);
 
         mRefreshProgressDialog = new ProgressDialog(this);
@@ -72,21 +77,29 @@ public class CellMemberListActivity extends AppCompatActivity implements CellMem
         mSubmitProgressDialog = new ProgressDialog(this);
         mSubmitProgressDialog.setMessage("데이터를 전송하는 중입니다");
 
-        weekOfYear = Common.getTodaysWeekOfYear();
-        year = Common.getTodaysYear();
-        selectedMonth = Common.getTodaysMonth();
-        selectedDate = Common.getDeafaultDate();
+        weekOfYear = getIntent().getIntExtra("week", Common.getTodaysWeekOfYear());
+        year = getIntent().getIntExtra("year", Common.getTodaysYear());
+        selectedMonth = Common.getMonth(year, weekOfYear);
+        selectedDate = Common.getDefaultDate(year, weekOfYear);
 
         setDateText(year, selectedMonth + 1, selectedDate);
 
         mAdapter = new CellMemberListViewAdapter();
+
+        if(from == 1) {
+            ((Button)findViewById(R.id.submit)).setVisibility(View.GONE);
+            mAdapter.disableViews();
+        }
+
         mAdapter.setMemberListInfo(mPresenter.getCellMemberData());
         mAdapter.setDate(year, weekOfYear);
 
-        mListView.setAdapter(mAdapter);
+        if(mListView.getCount() > 1)
+            mListView.setAdapter(mAdapter);
+
         mListView.setItemsCanFocus(true);
 
-        mPresenter.requestCellMemberAttendanceData(year, weekOfYear);
+        mPresenter.requestCellMemberAttendanceData(leaderName, year, weekOfYear);
     }
 
     @OnClick(R.id.calBtn)
@@ -134,13 +147,17 @@ public class CellMemberListActivity extends AppCompatActivity implements CellMem
 
     @Override
     public void onBackPressed() {
-        long backPressedTime = System.currentTimeMillis();
+        if(from == 0) {
+            long backPressedTime = System.currentTimeMillis();
 
-        if(backPressedTime - mFirstBackPressedTime < 2000){
-            finish();
+            if (backPressedTime - mFirstBackPressedTime < 2000) {
+                finish();
+            } else {
+                Toast.makeText(getApplicationContext(), ResourceManager.getInstance().getString(R.string.warning_for_app_terminating), Toast.LENGTH_SHORT).show();
+                mFirstBackPressedTime = backPressedTime;
+            }
         }else{
-            Toast.makeText(getApplicationContext(), ResourceManager.getInstance().getString(R.string.warning_for_app_terminating), Toast.LENGTH_SHORT).show();
-            mFirstBackPressedTime = backPressedTime;
+            finish();
         }
     }
 
@@ -161,7 +178,7 @@ public class CellMemberListActivity extends AppCompatActivity implements CellMem
                 mRefreshProgressDialog.show();
 
             mAdapter.setDate(year, weekOfYear);
-            mPresenter.requestCellMemberAttendanceData(year, weekOfYear);
+            mPresenter.requestCellMemberAttendanceData(leaderName, year, weekOfYear);
         }
     };
 
@@ -171,15 +188,19 @@ public class CellMemberListActivity extends AppCompatActivity implements CellMem
     }
 
     @Override
-    public void updateMemberList(int year, int week, ArrayList<CellMemberInfo> memberList) {
+    public void updateMemberList(int year, int week, Cell cell) {
         final int finalYear = year;
         final int finalWeek = week;
-        final ArrayList<CellMemberInfo> finalMemberList = memberList;
+        final Cell finalCell = cell;
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 mAdapter.setDate(finalYear, finalWeek);
-                mAdapter.setMemberListInfo(finalMemberList);
+                mAdapter.setMemberListInfo(finalCell);
+
+                if(mListView.getAdapter() == null && mAdapter.getCount() > 1)
+                    mListView.setAdapter(mAdapter);
+
                 mAdapter.notifyDataSetChanged();
             }
         });

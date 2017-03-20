@@ -1,8 +1,6 @@
 package com.spring.jspark.springwebcell.adapter;
 
 import android.content.Context;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,15 +9,14 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.EditText;
-import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.spring.jspark.springwebcell.R;
 import com.spring.jspark.springwebcell.common.Common;
-import com.spring.jspark.springwebcell.httpclient.model.AttendanceData;
-import com.spring.jspark.springwebcell.httpclient.model.CellMemberInfo;
+import com.spring.jspark.springwebcell.httpclient.model.Attendance;
+import com.spring.jspark.springwebcell.httpclient.model.Cell;
+import com.spring.jspark.springwebcell.httpclient.model.CellMember;
 import com.spring.jspark.springwebcell.view.CustomSpinner;
 
 import java.util.ArrayList;
@@ -38,18 +35,24 @@ public class CellMemberListViewAdapter extends BaseAdapter{
 
     String reason = "";
 
-    ArrayList<CellMemberInfo> mMemberList;
+    Cell mCell;
     boolean[] isThereUpdatedData;
 
     Map<Integer, View> mChildViews = new HashMap<>();
 
+    boolean isDiableRequired = false;
+
     public CellMemberListViewAdapter(){
-        mMemberList = new ArrayList<>();
+
     }
 
-    public void setMemberListInfo(ArrayList<CellMemberInfo> memberList) {
-        mMemberList = memberList;
-        isThereUpdatedData = new boolean[memberList.size()];
+    public void disableViews(){
+        isDiableRequired = true;
+    }
+
+    public void setMemberListInfo(Cell cell) {
+        mCell = cell;
+        isThereUpdatedData = new boolean[cell.size()];
         clearUpdatedData();
     }
 
@@ -67,16 +70,14 @@ public class CellMemberListViewAdapter extends BaseAdapter{
         return mChildViews.get(position);
     }
 
-
-
     @Override
     public int getCount() {
-        return mMemberList.size();
+        return mCell.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return mMemberList.get(position);
+        return mCell.getCellMemberByPosition(position);
     }
 
     @Override
@@ -125,11 +126,11 @@ public class CellMemberListViewAdapter extends BaseAdapter{
         CustomSpinner reasonSpinner = (CustomSpinner) convertView.findViewById(R.id.reason);
         EditText reasonEditText = (EditText) convertView.findViewById(R.id.prayer_point);
 
-        CellMemberInfo info = mMemberList.get(position);
-        AttendanceData attendanceData = info.getAttendanceData(year, week);
+        CellMember info = mCell.getCellMemberByPosition(position);
+        Attendance attendance = info.getAttendanceData(year, week);
 
-        boolean isWorshipAttended = attendanceData.isWorshipAttended();
-        boolean isCellAttended = attendanceData.isCellAttended();
+        boolean isWorshipAttended = attendance.isWorshipAttended();
+        boolean isCellAttended = attendance.isCellAttended();
 
         worshipCheckBox.setChecked(isWorshipAttended);
         cellCheckBox.setChecked(isCellAttended);
@@ -166,6 +167,13 @@ public class CellMemberListViewAdapter extends BaseAdapter{
         }
 
         reasonEditText.setText(otherReason);
+
+        if(isDiableRequired){
+            worshipCheckBox.setEnabled(false);
+            cellCheckBox.setEnabled(false);
+            reasonSpinner.setEnabled(false);
+            reasonEditText.setEnabled(false);
+        }
 
         return convertView;
     }

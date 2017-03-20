@@ -1,6 +1,7 @@
 package com.spring.jspark.springwebcell.contract;
 
-import com.spring.jspark.springwebcell.httpclient.model.CellMemberInfo;
+import com.spring.jspark.springwebcell.httpclient.model.CellMember;
+import com.spring.jspark.springwebcell.httpclient.model.Parish;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,20 +12,22 @@ import java.util.HashMap;
 
 public interface ParishMemberListContract {
     interface View{
-        void updateParishMembers(HashMap<String, ArrayList<CellMemberInfo>> parishMembers);
+        void updateParishMembers(Parish parish);
         void hideRefreshDialogProgress();
+        void goToCellMemberListActivity(String leaderName);
     }
 
     interface Presenter{
         void setView(View view);
         void requestParishMembers();
-        HashMap<String, ArrayList<CellMemberInfo>> getParishMember();
-        int getTotalWorshipAttendance(int year, int week);
-        int getTotalCellAttendance(int year, int week);
-        int getTotalWorshipAbsence(int year, int week);
-        int getTotalCellAbsence(int year, int week);
+        Parish getParishMember();
+        int getParishWorshipAttendance(int year, int week);
+        int getParishCellAttendance(int year, int week);
         int getTotal();
+        public int getTotal(int year, int week);
         String getParish();
         void requestParishMemberList(int year);
+        void requestCellMemberList(String leaderName, int year, int week);
+        void setListener();
     }
 }

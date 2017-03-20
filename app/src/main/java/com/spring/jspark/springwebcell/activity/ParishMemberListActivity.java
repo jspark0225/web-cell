@@ -2,9 +2,12 @@ package com.spring.jspark.springwebcell.activity;
 
 import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.DatePicker;
 import android.widget.ImageButton;
 import android.widget.ListView;
@@ -12,12 +15,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.spring.jspark.springwebcell.R;
-import com.spring.jspark.springwebcell.adapter.CellMemberListViewAdapter;
 import com.spring.jspark.springwebcell.adapter.ParishMemberListViewAdapter;
 import com.spring.jspark.springwebcell.common.Common;
 import com.spring.jspark.springwebcell.contract.ParishMemberListContract;
-import com.spring.jspark.springwebcell.httpclient.model.CellMemberInfo;
-import com.spring.jspark.springwebcell.presenter.CellMemberListPresenter;
+import com.spring.jspark.springwebcell.httpclient.model.CellMember;
+import com.spring.jspark.springwebcell.httpclient.model.Parish;
 import com.spring.jspark.springwebcell.presenter.ParishMemberListPresenter;
 import com.spring.jspark.springwebcell.utils.ResourceManager;
 
@@ -30,6 +32,8 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 public class ParishMemberListActivity extends AppCompatActivity implements ParishMemberListContract.View{
+    private static final String TAG = ParishMemberListActivity.class.getSimpleName();
+
     int weekOfYear;
     int year;
     int selectedMonth;
@@ -52,7 +56,7 @@ public class ParishMemberListActivity extends AppCompatActivity implements Paris
     @Bind(R.id.parish_member_list_overall_content)
     TextView mOverAllContent;
 
-    ParishMemberListViewAdapter mAdapter = new ParishMemberListViewAdapter();
+    ParishMemberListViewAdapter mAdapter;
 
     ParishMemberListPresenter mPresenter = new ParishMemberListPresenter();
 
@@ -64,6 +68,7 @@ public class ParishMemberListActivity extends AppCompatActivity implements Paris
         setContentView(R.layout.activity_parish_member_list);
         ButterKnife.bind(this);
         mPresenter.setView(this);
+        mAdapter = new ParishMemberListViewAdapter(mOnLayoutClickListener);
 
         mRefreshDialog = new ProgressDialog(this);
         mRefreshDialog.setMessage("데이터를 가져오는 중입니다");
@@ -83,11 +88,24 @@ public class ParishMemberListActivity extends AppCompatActivity implements Paris
         setOverallTitle();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setDateText(year, selectedMonth + 1, selectedDate);
+
+        mAdapter.setMemberListInfo(mPresenter.getParishMember());
+        mAdapter.setDate(year, weekOfYear);
+
+        //mListView.setAdapter(mAdapter);
+        //mListView.setItemsCanFocus(true);
+        setOverallTitle();
+    }
+
     private void setOverallTitle(){
-        int nWorshipAttendance = mPresenter.getTotalWorshipAttendance(year, weekOfYear);
-        int nCellAttendance = mPresenter.getTotalCellAttendance(year, weekOfYear);
-        int nWorshipTotal = nWorshipAttendance + mPresenter.getTotalWorshipAbsence(year, weekOfYear);
-        int nCellTotal = nCellAttendance + mPresenter.getTotalCellAbsence(year, weekOfYear);
+        int nWorshipAttendance = mPresenter.getParishWorshipAttendance(year, weekOfYear);
+        int nCellAttendance = mPresenter.getParishCellAttendance(year, weekOfYear);
+        int nWorshipTotal = mPresenter.getTotal(year, weekOfYear);
+        int nCellTotal = mPresenter.getTotal(year, weekOfYear);
 
         mOverallTitle.setText( mPresenter.getParish() );
         mOverAllContent.setText( "예배 출석(" + nWorshipAttendance + "/" + nWorshipTotal + "), 셀 출석(" + nCellAttendance + "/" + nCellTotal + ")" );
@@ -150,8 +168,8 @@ public class ParishMemberListActivity extends AppCompatActivity implements Paris
     }
 
     @Override
-    public void updateParishMembers(HashMap<String, ArrayList<CellMemberInfo>> parishMembers) {
-        final HashMap<String, ArrayList<CellMemberInfo>> finalParishMembers = parishMembers;
+    public void updateParishMembers(Parish parishMembers) {
+        final Parish finalParishMembers = parishMembers;
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -172,5 +190,42 @@ public class ParishMemberListActivity extends AppCompatActivity implements Paris
                     mRefreshDialog.hide();
             }
         });
+    }
+
+    public View.OnClickListener mOnLayoutClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            Log.d(TAG, "onClick");
+            View view = v.findViewById(R.id.parish_member_list_title);
+            if(view != null){
+                if(mRefreshDialog != null && !mRefreshDialog.isShowing())
+                    mRefreshDialog.show();
+
+                String leaderName = ((TextView) view).getText().toString();
+                mPresenter.requestCellMemberList(leaderName, year, weekOfYear);
+            }
+        }
+    };
+
+    @Override
+    public void goToCellMemberListActivity(final String leaderName) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Intent intent = new Intent(ParishMemberListActivity.this, CellMemberListActivity.class);
+                intent.putExtra("year", year);
+                intent.putExtra("week", weekOfYear);
+                intent.putExtra("leaderName", leaderName);
+                intent.putExtra("from", 1);
+                ParishMemberListActivity.this.startActivityForResult(intent, 100);
+            }
+        });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.d(TAG, "onActivityResult requestCode = " + requestCode);
+        mPresenter.setListener();
+        mAdapter.notifyDataSetChanged();
     }
 }

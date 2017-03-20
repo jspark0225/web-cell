@@ -1,6 +1,7 @@
 package com.spring.jspark.springwebcell.contract;
 
-import com.spring.jspark.springwebcell.httpclient.model.CellMemberInfo;
+import com.spring.jspark.springwebcell.httpclient.model.Cell;
+import com.spring.jspark.springwebcell.httpclient.model.CellMember;
 
 import java.util.ArrayList;
 
@@ -10,7 +11,7 @@ import java.util.ArrayList;
 
 public interface CellMemberListContract {
     interface View{
-        void updateMemberList(int year, int week, ArrayList<CellMemberInfo> memberList);
+        void updateMemberList(int year, int week, Cell memberList);
         void showToast(String message);
         void hideSubmitProgressDialog();
         void hideRefreshProgressDialog();
@@ -18,11 +19,11 @@ public interface CellMemberListContract {
 
     interface Presenter{
         void setView(View view);
-        ArrayList<CellMemberInfo> getCellMemberData();
+        Cell getCellMemberData();
         void setAttendanceData(int index, int year, int week,
                                boolean isWorshipAttended, boolean isCellAttended,
                                String reason1, String reason2);
-        void requestCellMemberAttendanceData(int year, int week);
+        void requestCellMemberAttendanceData(String leaderName, int year, int week);
         void onSubmitButtonClicked(int year, int week);
     }
 }

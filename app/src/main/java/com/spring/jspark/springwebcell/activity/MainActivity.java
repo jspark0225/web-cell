@@ -11,6 +11,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.spring.jspark.springwebcell.R;
+import com.spring.jspark.springwebcell.common.Common;
 import com.spring.jspark.springwebcell.utils.ResourceManager;
 import com.spring.jspark.springwebcell.utils.SharedPreferenceManager;
 import com.spring.jspark.springwebcell.contract.MainContract;
@@ -171,6 +172,10 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
     @Override
     public void goToCellMemberActivity() {
         Intent intent = new Intent(MainActivity.this, CellMemberListActivity.class);
+        intent.putExtra("year", Common.getTodaysYear());
+        intent.putExtra("week", Common.getTodaysWeekOfYear());
+        intent.putExtra("leaderName", mLoginEditText.getText().toString());
+        intent.putExtra("from", 0);
         startActivityForResult(intent, REQUEST_CODE_TERMINATE);
     }
 

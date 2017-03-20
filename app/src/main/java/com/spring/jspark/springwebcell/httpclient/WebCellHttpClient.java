@@ -2,8 +2,10 @@ package com.spring.jspark.springwebcell.httpclient;
 
 import android.util.Log;
 
-import com.spring.jspark.springwebcell.httpclient.model.AttendanceData;
-import com.spring.jspark.springwebcell.httpclient.model.CellMemberInfo;
+import com.spring.jspark.springwebcell.httpclient.model.Attendance;
+import com.spring.jspark.springwebcell.httpclient.model.Cell;
+import com.spring.jspark.springwebcell.httpclient.model.CellMember;
+import com.spring.jspark.springwebcell.httpclient.model.Parish;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -27,6 +29,7 @@ public class WebCellHttpClient {
     private static final int REQUEST_CODE_SUBMIT_WORSHIP_ATTENDANCE = 4;
     private static final int REQUEST_CODE_REQUEST_CELL_MEMBER_INFO = 5;
     private static final int REQUEST_CODE_REQUEST_PARISH_MEMBER_INFO = 6;
+    private static final int REQUEST_CODE_LOGIN_INFO = 7;
 
     private String mCookie = "";
     private OnHttpResponse mListener = null;
@@ -35,10 +38,12 @@ public class WebCellHttpClient {
     private String mUserId = "";
     private String mParish = "";
     private boolean isLoggedIn = false;
+/*
+    private ArrayList<CellMember> mCellMembers = new ArrayList<>();
 
-    private ArrayList<CellMemberInfo> mCellMemberInfos = new ArrayList<>();
-
-    private HashMap<String, ArrayList<CellMemberInfo>> mParishMemberInfo = new HashMap<>();
+    private HashMap<String, ArrayList<CellMember>> mParishMemberInfo = new HashMap<>();
+*/
+    private Parish mParishInfo;
 
     private WebCellHttpClient(){
 
@@ -52,32 +57,32 @@ public class WebCellHttpClient {
         return mInstance;
     }
 
-    public ArrayList<CellMemberInfo> getCellMemberInfo() {
-        return mCellMemberInfos;
+    public String getUserId(){return mUserId;}
+
+    public Cell getCell() {
+        return getCell(mUserId);
     }
 
-    public HashMap<String, ArrayList<CellMemberInfo>> getParishMemberInfo() { return mParishMemberInfo; }
+    public Cell getCell(String leaderName){
+        return mParishInfo.getCell(leaderName);
+    }
+
+    public Parish getParish() { return mParishInfo; }
 
     public void setListener(OnHttpResponse listener){
         this.mListener = listener;
     }
 
-    public void setParish(String parish){
+    private void setParish(String parish){
+        mParishInfo = new Parish(parish);
         this.mParish = parish;
     }
 
-    public CellMemberInfo getCellMemberInfoById(String id){
-        for(CellMemberInfo info : mCellMemberInfos)
-            if(info.getId().equals(id))
-                return info;
+    public String getParishName(){ return mParish; }
 
-        return null;
-    }
-
-    public String getParish(){ return mParish; }
-
-    public void requestLogin(String id, String password){
+    public void requestLogin(final String id, String password, String parish){
         mUserId = id;
+        setParish(parish);
 
         String requestUri = "https://sinch.dimode.co.kr/include/loginCheck.asp";
         HttpRequest request = new HttpRequest(REQUEST_CODE_LOGIN, HttpRequest.POST, requestUri, new HttpResponse() {
@@ -88,8 +93,9 @@ public class WebCellHttpClient {
 
                 if(statusCode == 302){
                     isLoggedIn = true;
-                    if(headers != null && headers.containsKey("Set-Cookie"))
+                    if(headers != null && headers.containsKey("Set-Cookie")) {
                         mCookie = headers.get("Set-Cookie").get(0);
+                    }
                     if(mListener != null)
                         mListener.onLoginResult(true);
                 }else{
@@ -106,8 +112,10 @@ public class WebCellHttpClient {
         request.addParameter("loginID", id);
         request.addParameter("loginPWD", password);
 
+
         request.start();
     }
+
 
     public void requestParishMemberInfo(int year, boolean isWorship){
         final int finalYear = year;
@@ -135,13 +143,11 @@ public class WebCellHttpClient {
                     }
                 }
 
-                long middle = System.currentTimeMillis();
-                mParishMemberInfo = parseParishMemberInfo(finalIsWorship, finalYear, body);
-                long end = System.currentTimeMillis();
+                parseParishMemberInfo(finalIsWorship, finalYear, body);
 
                 synchronized (mListener) {
                     if (mListener != null)
-                        mListener.onRequestParishMemberInfoResult(true, finalIsWorship, mParishMemberInfo);
+                        mListener.onRequestParishMemberInfoResult(true, finalIsWorship, mParishInfo);
                 }
             }
         });
@@ -163,6 +169,10 @@ public class WebCellHttpClient {
     }
 
     public void requestCellMemberInfo(){
+        requestCellMemberInfo(mUserId);
+    }
+
+    public void requestCellMemberInfo(final String leaderName){
         Log.d(TAG, "requestCellMemberInfo");
         if(!isLoggedIn){
             Log.e(TAG, "NOT Logged in");
@@ -185,13 +195,11 @@ public class WebCellHttpClient {
                     }
                 }
 
-                mCellMemberInfos = parseCellMemberInfo(body);
-
-                long end = System.currentTimeMillis();
+                parseCellMemberInfo(leaderName, body);
 
                 synchronized (mListener) {
                     if (mListener != null)
-                        mListener.onRequestCellMemberInfoResult(true, mCellMemberInfos);
+                        mListener.onRequestCellMemberInfoResult(true, mParishInfo.getCell(leaderName));
                 }
             }
         });
@@ -202,23 +210,27 @@ public class WebCellHttpClient {
 
         request.addParameter("range", "청년사역");
         request.addParameter("range1", mParish);
-        request.addParameter("range2", mUserId);
+        request.addParameter("range2", leaderName);
 
         request.start();
     }
 
     public void getCellMemberAttendance(int year, int week){
+        getCellMemberAttendance(mUserId, year, week);
+    }
+
+    public void getCellMemberAttendance(String leaderName, int year, int week){
         Log.d(TAG, "getCellMemberAttendance year=" + year+", week=" + week);
         if(!isLoggedIn){
             Log.e(TAG, "NOT Logged in");
             return;
         }
 
-        getWorshipAttendance(year, week);
-        getCellAttendance(year, week);
+        getWorshipAttendance(leaderName, year, week);
+        getCellAttendance(leaderName, year, week);
     }
 
-    private void getWorshipAttendance(int year, int week){
+    private void getWorshipAttendance(final String leaderName, int year, int week){
         String requestUri = "https://sinch.dimode.co.kr/webrange/cell/weeklyRangeATT_SUN.asp";
 
         final int targetYear = year;
@@ -241,16 +253,18 @@ public class WebCellHttpClient {
                 Document doc = Jsoup.parse(body);
                 Elements elements = doc.select("table tr td input");
 
-                synchronized (mCellMemberInfos) {
+                Cell cell = mParishInfo.getCell(leaderName);
+
+                synchronized (cell) {
                     for (int i = 0; i < elements.size() / 4; i++) {
                         String id = elements.get(i * 4).attr("value");
                         String index = elements.get(i * 4).attr("name").replace("id", "").replace("(", "").replace(")", "");
-                        CellMemberInfo memberInfo = getCellMemberInfoById(id);
+                        CellMember memberInfo = cell.getCellMemberById(id);
 
                         if(memberInfo == null)
                             continue;
 
-                        AttendanceData data = memberInfo.getAttendanceData(targetYear, targetWeek);
+                        Attendance data = memberInfo.getAttendanceData(targetYear, targetWeek);
 
                         data.setIndex(Integer.parseInt(index));
                         data.setWorshipAttended(elements.get(i * 4 + 2).attributes().hasKey("checked"));
@@ -264,7 +278,7 @@ public class WebCellHttpClient {
 
                 synchronized (mListener) {
                     if (mListener != null)
-                        mListener.onRequestCellMemberAttendanceResult(true, targetYear, targetWeek, mCellMemberInfos);
+                        mListener.onRequestCellMemberAttendanceResult(true, targetYear, targetWeek, cell);
                 }
             }
         });
@@ -279,14 +293,14 @@ public class WebCellHttpClient {
         getWorshipAttendanceRequest.addParameter("code", "");
         getWorshipAttendanceRequest.addParameter("range", "청년사역");
         getWorshipAttendanceRequest.addParameter("range1", mParish);
-        getWorshipAttendanceRequest.addParameter("range2", mUserId);
+        getWorshipAttendanceRequest.addParameter("range2", leaderName);
         getWorshipAttendanceRequest.addParameter("startMonth", "01");
         getWorshipAttendanceRequest.addParameter("endMonth", "12");
 
         getWorshipAttendanceRequest.start();
     }
 
-    private void getCellAttendance(int year, int week){
+    private void getCellAttendance(final String leaderName, int year, int week){
         String requestUri = "https://sinch.dimode.co.kr/webrange/cell/weeklyRangeATT_DAY.asp";
 
         final int targetYear = year;
@@ -309,15 +323,17 @@ public class WebCellHttpClient {
                 Document doc = Jsoup.parse(body);
                 Elements elements = doc.select("table tr td input");
 
-                synchronized (mCellMemberInfos) {
+                Cell cell = mParishInfo.getCell(leaderName);
+
+                synchronized (cell) {
                     for (int i = 0; i < elements.size() / 4; i++) {
                         String id = elements.get(i * 4).attr("value");
-                        CellMemberInfo memberInfo = getCellMemberInfoById(id);
+                        CellMember memberInfo = cell.getCellMemberById(id);
 
                         if(memberInfo == null)
                             continue;
 
-                        AttendanceData data = memberInfo.getAttendanceData(targetYear, targetWeek);
+                        Attendance data = memberInfo.getAttendanceData(targetYear, targetWeek);
 
                         data.setCellAttended(elements.get(i * 4 + 2).attributes().hasKey("checked"));
 
@@ -329,7 +345,7 @@ public class WebCellHttpClient {
                 }
                 synchronized (mListener) {
                     if (mListener != null)
-                        mListener.onRequestCellMemberAttendanceResult(true, targetYear, targetWeek, mCellMemberInfos);
+                        mListener.onRequestCellMemberAttendanceResult(true, targetYear, targetWeek, cell);
                 }
             }
         });
@@ -344,7 +360,7 @@ public class WebCellHttpClient {
         getCellAttendanceRequest.addParameter("code", "");
         getCellAttendanceRequest.addParameter("range", "청년사역");
         getCellAttendanceRequest.addParameter("range1", mParish);
-        getCellAttendanceRequest.addParameter("range2", mUserId);
+        getCellAttendanceRequest.addParameter("range2", leaderName);
         getCellAttendanceRequest.addParameter("startMonth", "01");
         getCellAttendanceRequest.addParameter("endMonth", "12");
 
@@ -352,11 +368,15 @@ public class WebCellHttpClient {
     }
 
     public void submitAttendance(int year, int week){
-        submitWorshipAttendance(year, week);
-        submitCellAttendance(year, week);
+        submitAttendance(mUserId, year, week);
     }
 
-    private void submitWorshipAttendance(int year, int week){
+    public void submitAttendance(String leaderName, int year, int week){
+        submitWorshipAttendance(leaderName, year, week);
+        submitCellAttendance(leaderName, year, week);
+    }
+
+    private void submitWorshipAttendance(String leaderName, int year, int week){
         Log.d(TAG, "submitWorshipAttendance year="+year+", week="+week);
         if(!isLoggedIn){
             Log.e(TAG, "NOT Logged in");
@@ -385,8 +405,10 @@ public class WebCellHttpClient {
         request.addHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
         request.addHeader("Cookie", mCookie);
 
-        for(CellMemberInfo info : mCellMemberInfos){
-            AttendanceData data = info.getAttendanceData(year, week);
+        Cell cell = mParishInfo.getCell(leaderName);
+
+        for(CellMember info : cell.getCellMemberList()){
+            Attendance data = info.getAttendanceData(year, week);
             request.addParameter("id(" + data.getIndex() + ")", info.getId());
             request.addParameter("insName(" + data.getIndex() + ")", info.getName());
             if(data.isWorshipAttended())
@@ -394,7 +416,7 @@ public class WebCellHttpClient {
             request.addParameter("reason(" + data.getIndex() + ")", data.getAbsentReason());
         }
 
-        request.addParameter("i", ""+mCellMemberInfos.size());
+        request.addParameter("i", ""+ cell.getCellMemberList().size());
         request.addParameter("setDate", "" + year);
         request.addParameter("staticYear", "" + year);
         request.addParameter("rno", "" + week);
@@ -402,7 +424,7 @@ public class WebCellHttpClient {
         request.start();
     }
 
-    private void submitCellAttendance(int year, int week){
+    private void submitCellAttendance(String leaderName, int year, int week){
         Log.d(TAG, "submitCellAttendance year="+year+", week="+week);
         if(!isLoggedIn){
             Log.e(TAG, "NOT Logged in");
@@ -431,8 +453,10 @@ public class WebCellHttpClient {
         request.addHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
         request.addHeader("Cookie", mCookie);
 
-        for(CellMemberInfo info : mCellMemberInfos){
-            AttendanceData data = info.getAttendanceData(year, week);
+        Cell cell = mParishInfo.getCell(leaderName);
+
+        for(CellMember info : cell.getCellMemberList()){
+            Attendance data = info.getAttendanceData(year, week);
             request.addParameter("id(" + data.getIndex() + ")", info.getId());
             request.addParameter("insName(" + data.getIndex() + ")", info.getName());
             if(data.isCellAttended())
@@ -442,7 +466,7 @@ public class WebCellHttpClient {
             //request.addParameter("reason(" + data.getIndex() + ")", cellAbsentReason);
         }
 
-        request.addParameter("i", ""+mCellMemberInfos.size());
+        request.addParameter("i", ""+ cell.getCellMemberList().size());
         request.addParameter("setDate", "" + year);
         request.addParameter("staticYear", "" + year);
         request.addParameter("rno", "" + week);
@@ -450,11 +474,12 @@ public class WebCellHttpClient {
         request.start();
     }
 
-    private ArrayList<CellMemberInfo> parseCellMemberInfo(String body){
+    private void parseCellMemberInfo(String leaderName, String body){
         Document doc = Jsoup.parse(body);
         Elements elements = doc.select("table tr[height=20] td[bgcolor=#FFFFFF]");
 
-        ArrayList<CellMemberInfo> cellMemberInfos = new ArrayList<>();
+
+        Cell newCell = mParishInfo.getCell(leaderName);
 
         for(int i=0; i<elements.size()/11; i++){
             String name             = elements.get(i * 11 + 0).child(0).child(0).text();
@@ -470,55 +495,30 @@ public class WebCellHttpClient {
             String prevChurch       = elements.get(i * 11 + 9).child(0).text();
             String otherInfo        = elements.get(i * 11 + 10).child(0).text();
 
-            CellMemberInfo memberInfo = new CellMemberInfo();
-            memberInfo.setName(name);
+            CellMember memberInfo = newCell.getCellMember(name);
             memberInfo.setId(id);
             memberInfo.setPhoneNumber(phoneNumber);
-
-            cellMemberInfos.add(memberInfo);
         }
-
-        return cellMemberInfos;
     }
 
-    private HashMap<String, ArrayList<CellMemberInfo>> parseParishMemberInfo(boolean isWorship, int year, String body){
+    private void parseParishMemberInfo(boolean isWorship, int year, String body){
         Log.d(TAG, "parseParishMemberInfo isWorship = " + isWorship);
         Document doc = Jsoup.parse(body);
         Elements elements = doc.select("table tr td[title]");
 
-
-        HashMap<String, ArrayList<CellMemberInfo>> parishMemberInfo = mParishMemberInfo;
+        Elements totalElements = doc.select("td[bgcolor=#C1F2FF][width=80]");
 
         for(Element e : elements){
             String leaderName = e.attr("title").replace(mParish, "").replace("/", "");
+            String memberName = e.text();
 
-            ArrayList<CellMemberInfo> cellMemberInfoList = null;
-            if(!parishMemberInfo.containsKey(leaderName)){
-                cellMemberInfoList = new ArrayList<CellMemberInfo>();
-                parishMemberInfo.put(leaderName, cellMemberInfoList);
-            }else
-                cellMemberInfoList = parishMemberInfo.get(leaderName);
-
-            CellMemberInfo cellMemberInfo = null;
-            for(CellMemberInfo info : cellMemberInfoList){
-                if(info.getName().equals(e.text())){
-                    Log.d(TAG, "jsparkk e.text() = " + e.text());
-                    cellMemberInfo = info;
-                    break;
-                }
-            }
-
-            if(cellMemberInfo == null){
-                cellMemberInfo = new CellMemberInfo();
-                cellMemberInfo.setName(e.text());
-                parishMemberInfo.get(leaderName).add(cellMemberInfo);
-            }
+            CellMember cellMember = mParishInfo.getCell(leaderName).getCellMember(memberName);
 
             Element traverse = e.nextElementSibling();
 
             int week = 1;
             while(traverse != null && !traverse.hasAttr("title")){
-                AttendanceData data = cellMemberInfo.getAttendanceData(year, week);
+                Attendance data = cellMember.getAttendanceData(year, week);
                 boolean isAttended = traverse.text().equals("O") ? true : false;
                 boolean isChecked = traverse.text().equals("") ? false : true;
 
@@ -536,6 +536,13 @@ public class WebCellHttpClient {
             }
         }
 
-        return parishMemberInfo;
+
+        int week = 1;
+        for(Element e : totalElements){
+            String value = e.text().length() >= 1 ? e.text().substring(0, e.text().length()-1) : "0";
+            int total = Integer.parseInt(value);
+            mParishInfo.setTotalNumberOfParish(year, week, total);
+            week++;
+        }
     }
 }
